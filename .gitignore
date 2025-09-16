@@ -8,9 +8,11 @@ node_modules/
 .yarn/unplugged
 .yarn/build-state.yml
 .yarn/install-state.gz
-.pnp.*
 *.tgz
 .yarn-integrity
+
+# Yarn PnP/editor SDKs (generated per-machine; do not commit)
++.yarn/sdks
 
 # Production
 /build
