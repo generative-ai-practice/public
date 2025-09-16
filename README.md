@@ -15,7 +15,7 @@ claude
 gemini
 ```
 
-### gemini ログイン方法
+### Gemini ログイン方法
 ```bash
 /auth
 ```
@@ -23,3 +23,8 @@ gemini
 1. Login with Google <- select
 2. Use Gemini API K ey
 3. Vertex AI  
+
+### Gemini API Key 
+- `repogitory name` + `settings/secrets/actions`
+- GEMINI_API_KEY
+- https://aistudio.google.com/apikey
