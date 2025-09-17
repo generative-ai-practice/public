@@ -104,24 +104,98 @@ const defaultTranslationCommand = JSON.stringify([
         continue;
       }
 
+      const segments = splitContentIntoSegments(sourceContent);
+      const previousSegmentTranslations = buildSegmentTranslationMap(
+        metaEntry?.segments || []
+      );
+      const segmentResults = new Array(segments.length);
+      const pendingSegments = [];
+
+      segments.forEach((segment, index) => {
+        const hash = hashOf(segment.body);
+
+        if (segment.body.trim() === '') {
+          segmentResults[index] = {
+            hash,
+            translation: '',
+            separator: segment.separator,
+          };
+          return;
+        }
+
+        const reuseList = previousSegmentTranslations.get(hash);
+        if (reuseList && reuseList.length > 0) {
+          const reusedTranslation = reuseList.shift();
+          segmentResults[index] = {
+            hash,
+            translation: reusedTranslation,
+            separator: segment.separator,
+          };
+        } else {
+          pendingSegments.push({
+            index,
+            hash,
+            body: segment.body,
+            separator: segment.separator,
+          });
+        }
+      });
+
+      if (pendingSegments.length === 0) {
+        if (dryRun) {
+          console.log(
+            `[translate] (dry-run) No segment changes detected for ${relativeSourcePath} (${sourceLang}→${targetLang}).`
+          );
+          continue;
+        }
+
+        metadata[metaKey] = {
+          source: relativeSourcePath,
+          target: targetRelativePath,
+          sourceLang,
+          targetLang,
+          sourceHash,
+          translatedAt: new Date().toISOString(),
+          segments: segmentResults.map((segment) => ({
+            hash: segment.hash,
+            translation: segment.translation,
+          })),
+        };
+        metadataChanged = true;
+        console.log(
+          `[translate] Reused existing translations for ${relativeSourcePath} (${sourceLang}→${targetLang}).`
+        );
+        continue;
+      }
+
       if (dryRun) {
         console.log(
-          `[translate] (dry-run) Would translate ${relativeSourcePath} (${sourceLang}→${targetLang}) -> ${targetRelativePath}`
+          `[translate] (dry-run) Would translate ${pendingSegments.length} segment(s) for ${relativeSourcePath} (${sourceLang}→${targetLang}).`
         );
         continue;
       }
 
       await mkdir(path.dirname(targetAbsolutePath), { recursive: true });
-      const translation = await runGeminiTranslation({
-        sourceContent,
-        sourceLang,
-        targetLang,
-        relativeSourcePath,
-        relativeTargetPath: targetRelativePath,
-      });
+
+      for (const pending of pendingSegments) {
+        const translation = await runGeminiTranslation({
+          sourceContent: pending.body,
+          sourceLang,
+          targetLang,
+          relativeSourcePath: `${relativeSourcePath} (segment ${pending.index + 1}/${segments.length})`,
+          relativeTargetPath: `${targetRelativePath} (segment ${pending.index + 1}/${segments.length})`,
+        });
+        segmentResults[pending.index] = {
+          hash: pending.hash,
+          translation,
+          separator: pending.separator,
+        };
+      }
+
+      const translatedContent = reconstructContentFromSegments(segmentResults);
       await writeFile(
         targetAbsolutePath,
-        ensureTrailingNewline(translation),
+        ensureTrailingNewline(translatedContent),
         'utf8'
       );
 
@@ -132,11 +206,15 @@ const defaultTranslationCommand = JSON.stringify([
         targetLang,
         sourceHash,
         translatedAt: new Date().toISOString(),
+        segments: segmentResults.map((segment) => ({
+          hash: segment.hash,
+          translation: segment.translation,
+        })),
       };
       translatedCount += 1;
       metadataChanged = true;
       console.log(
-        `[translate] Updated ${targetRelativePath} (${sourceLang}→${targetLang}).`
+        `[translate] Updated ${targetRelativePath} (${sourceLang}→${targetLang}) with ${pendingSegments.length} new segment(s).`
       );
     }
   }
@@ -252,6 +330,56 @@ function parseTargetLanguages(raw) {
     .split(/[;,]/)
     .map((value) => value.trim())
     .filter(Boolean);
+}
+
+function splitContentIntoSegments(content) {
+  const normalized = normalizeLineEndings(content);
+  if (normalized === '') {
+    return [];
+  }
+
+  const parts = normalized.split(/(\n{2,})/);
+  const segments = [];
+
+  for (let index = 0; index < parts.length; index += 2) {
+    const body = parts[index] ?? '';
+    const separator = parts[index + 1] ?? '';
+
+    if (body === '' && separator === '' && index > 0) {
+      continue;
+    }
+
+    segments.push({ body, separator });
+  }
+
+  return segments;
+}
+
+function buildSegmentTranslationMap(segmentMetadata) {
+  const map = new Map();
+  for (const segment of segmentMetadata) {
+    if (!segment || !segment.hash) {
+      continue;
+    }
+    if (!map.has(segment.hash)) {
+      map.set(segment.hash, []);
+    }
+    map.get(segment.hash).push(segment.translation ?? '');
+  }
+  return map;
+}
+
+function reconstructContentFromSegments(segmentResults) {
+  let combined = '';
+  segmentResults.forEach((segment) => {
+    if (!segment) {
+      return;
+    }
+    const translation = normalizeLineEndings(segment.translation ?? '').trimEnd();
+    combined += translation;
+    combined += segment.separator ?? '';
+  });
+  return combined;
 }
 
 function deriveTargetPath(relativePath, sourceLang, targetLang) {
