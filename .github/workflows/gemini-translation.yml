@@ -1,0 +1,103 @@
+name: '🌐 Gemini Translation'
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'README.md'
+      - 'README_*.md'
+      - 'docs/**/*.md'
+      - 'translations/**'
+      - '.translations.json'
+      - 'scripts/translate-docs.mjs'
+  workflow_dispatch: {}
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.ref }}'
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: 'bash'
+
+jobs:
+  translate:
+    runs-on: 'ubuntu-latest'
+    permissions:
+      contents: 'write'
+      pull-requests: 'write'
+      id-token: 'write'
+    steps:
+      - name: 'Mint identity token'
+        id: 'mint_identity_token'
+        if: ${{ vars.APP_ID }}
+        uses: 'actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b'
+        with:
+          app-id: '${{ vars.APP_ID }}'
+          private-key: '${{ secrets.APP_PRIVATE_KEY }}'
+          permission-contents: 'write'
+          permission-pull-requests: 'write'
+
+      - name: 'Checkout repository'
+        uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8'
+
+      - name: 'Set up Node.js'
+        uses: 'actions/setup-node@v4'
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: 'Install dependencies'
+        run: |
+          corepack enable
+          yarn install --immutable
+
+      - name: 'Install Gemini CLI'
+        run: |
+          npm install -g "@google/gemini-cli@${{ vars.GEMINI_CLI_VERSION }}"
+
+      - name: 'Run Gemini translation orchestrator'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_LOCATION: ${{ vars.GOOGLE_CLOUD_LOCATION }}
+          GEMINI_TRANSLATION_MODEL: ${{ vars.GEMINI_TRANSLATION_MODEL || 'gemini-1.5-pro' }}
+          GEMINI_TRANSLATION_CLI: >-
+            ["bash","-lc","gemini text \
+              --model ${GEMINI_TRANSLATION_MODEL:-gemini-1.5-pro} \
+              --input-file {PROMPT_FILE} \
+              --output-file {OUTPUT_FILE} \
+              --use-vertex-ai=${{ vars.GOOGLE_GENAI_USE_VERTEXAI }} \
+              --project=${{ vars.GOOGLE_CLOUD_PROJECT }} \
+              --location=${{ vars.GOOGLE_CLOUD_LOCATION }}"]
+          TRANSLATION_ALLOWED_LANGUAGES: en,ja
+        run: |
+          node scripts/translate-docs.mjs
+
+      - name: 'Check for changes'
+        id: 'git_status'
+        run: |
+          if git diff --quiet; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 'Create translation pull request'
+        if: ${{ steps.git_status.outputs.has_changes == 'true' }}
+        uses: 'peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e'
+        with:
+          token: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
+          branch: 'automation/gemini-translations'
+          base: 'main'
+          title: 'chore: update translations'
+          commit-message: 'chore: update translations'
+          body: |
+            Automated Gemini translation update triggered by changes in main.
+          add-paths: |
+            README*.md
+            docs/**/*.md
+            .translations.json
+            translations/targets.csv
