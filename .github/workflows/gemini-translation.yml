@@ -95,6 +95,6 @@ jobs:
             Automated Gemini translation update triggered by changes in main.
           add-paths: |
             README*.md
-            docs/**/*.md
+            docs/
             .translations.json
             translations/targets.csv
