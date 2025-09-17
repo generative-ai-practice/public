@@ -413,15 +413,13 @@ function sanitizeTranslation(rawText) {
     /^please\s+manually.*$/i,
   ];
 
-  const cleanedLines = text
-    .split('\n')
-    .filter((line) => {
-      const trimmed = line.trim();
-      if (trimmed === '') {
-        return true;
-      }
-      return !disclaimerPatterns.some((pattern) => pattern.test(trimmed));
-    });
+  const cleanedLines = text.split('\n').filter((line) => {
+    const trimmed = line.trim();
+    if (trimmed === '') {
+      return true;
+    }
+    return !disclaimerPatterns.some((pattern) => pattern.test(trimmed));
+  });
 
   text = cleanedLines.join('\n').trim();
 
