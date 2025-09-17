@@ -68,13 +68,7 @@ jobs:
           GOOGLE_CLOUD_LOCATION: ${{ vars.GOOGLE_CLOUD_LOCATION }}
           GEMINI_TRANSLATION_MODEL: ${{ vars.GEMINI_TRANSLATION_MODEL || 'gemini-1.5-pro' }}
           GEMINI_TRANSLATION_CLI: >-
-            ["bash","-lc","gemini text \
-              --model ${GEMINI_TRANSLATION_MODEL:-gemini-1.5-pro} \
-              --input-file {PROMPT_FILE} \
-              --output-file {OUTPUT_FILE} \
-              --use-vertex-ai=${{ vars.GOOGLE_GENAI_USE_VERTEXAI }} \
-              --project=${{ vars.GOOGLE_CLOUD_PROJECT }} \
-              --location=${{ vars.GOOGLE_CLOUD_LOCATION }}"]
+            ["bash","-lc","gemini text --model ${GEMINI_TRANSLATION_MODEL:-gemini-1.5-pro} --input-file {PROMPT_FILE} --output-file {OUTPUT_FILE} --use-vertex-ai=${{ vars.GOOGLE_GENAI_USE_VERTEXAI }} --project=${{ vars.GOOGLE_CLOUD_PROJECT }} --location=${{ vars.GOOGLE_CLOUD_LOCATION }}"]
           TRANSLATION_ALLOWED_LANGUAGES: en,ja
         run: |
           node scripts/translate-docs.mjs
