@@ -375,7 +375,9 @@ function reconstructContentFromSegments(segmentResults) {
     if (!segment) {
       return;
     }
-    const translation = normalizeLineEndings(segment.translation ?? '').trimEnd();
+    const translation = normalizeLineEndings(
+      segment.translation ?? ''
+    ).trimEnd();
     combined += translation;
     combined += segment.separator ?? '';
   });
