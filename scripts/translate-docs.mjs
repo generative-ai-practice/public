@@ -8,13 +8,17 @@ import { createHash, randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 
 const repoRoot = process.cwd();
-const csvPath = resolvePath(process.env.TRANSLATION_CSV ?? 'translations/targets.csv');
-const metadataPath = resolvePath(process.env.TRANSLATION_METADATA ?? '.translations.json');
+const csvPath = resolvePath(
+  process.env.TRANSLATION_CSV ?? 'translations/targets.csv'
+);
+const metadataPath = resolvePath(
+  process.env.TRANSLATION_METADATA ?? '.translations.json'
+);
 const allowedLanguages = new Set(
   (process.env.TRANSLATION_ALLOWED_LANGUAGES ?? 'en,ja')
     .split(',')
-    .map(value => value.trim())
-    .filter(Boolean),
+    .map((value) => value.trim())
+    .filter(Boolean)
 );
 const dryRun = process.argv.includes('--dry-run');
 const defaultTranslationCommand = JSON.stringify([
@@ -44,17 +48,23 @@ const defaultTranslationCommand = JSON.stringify([
     const relativeSourcePath = row.relative_path;
     const sourceLang = row.src_lang;
     if (!relativeSourcePath || !sourceLang) {
-      console.warn(`[translate] Skipping row with missing path or src_lang: ${JSON.stringify(row)}`);
+      console.warn(
+        `[translate] Skipping row with missing path or src_lang: ${JSON.stringify(row)}`
+      );
       continue;
     }
     if (!allowedLanguages.has(sourceLang)) {
-      console.warn(`[translate] Source language "${sourceLang}" is not allowed. Skipping ${relativeSourcePath}.`);
+      console.warn(
+        `[translate] Source language "${sourceLang}" is not allowed. Skipping ${relativeSourcePath}.`
+      );
       continue;
     }
 
     const targetLangs = parseTargetLanguages(row.target_langs);
     if (targetLangs.length === 0) {
-      console.warn(`[translate] No target languages specified for ${relativeSourcePath}.`);
+      console.warn(
+        `[translate] No target languages specified for ${relativeSourcePath}.`
+      );
       continue;
     }
 
@@ -69,25 +79,35 @@ const defaultTranslationCommand = JSON.stringify([
 
     for (const targetLang of targetLangs) {
       if (!allowedLanguages.has(targetLang)) {
-        console.warn(`[translate] Target language "${targetLang}" is not allowed for ${relativeSourcePath}.`);
+        console.warn(
+          `[translate] Target language "${targetLang}" is not allowed for ${relativeSourcePath}.`
+        );
         continue;
       }
       if (targetLang === sourceLang) {
         continue;
       }
 
-      const targetRelativePath = deriveTargetPath(relativeSourcePath, sourceLang, targetLang);
+      const targetRelativePath = deriveTargetPath(
+        relativeSourcePath,
+        sourceLang,
+        targetLang
+      );
       const targetAbsolutePath = resolvePath(targetRelativePath);
       const metaKey = `${relativeSourcePath}::${sourceLang}->${targetLang}`;
       const metaEntry = metadata[metaKey];
 
       if (metaEntry && metaEntry.sourceHash === sourceHash) {
-        console.log(`[translate] Up-to-date: ${relativeSourcePath} (${sourceLang}→${targetLang}).`);
+        console.log(
+          `[translate] Up-to-date: ${relativeSourcePath} (${sourceLang}→${targetLang}).`
+        );
         continue;
       }
 
       if (dryRun) {
-        console.log(`[translate] (dry-run) Would translate ${relativeSourcePath} (${sourceLang}→${targetLang}) -> ${targetRelativePath}`);
+        console.log(
+          `[translate] (dry-run) Would translate ${relativeSourcePath} (${sourceLang}→${targetLang}) -> ${targetRelativePath}`
+        );
         continue;
       }
 
@@ -99,7 +119,11 @@ const defaultTranslationCommand = JSON.stringify([
         relativeSourcePath,
         relativeTargetPath: targetRelativePath,
       });
-      await writeFile(targetAbsolutePath, ensureTrailingNewline(translation), 'utf8');
+      await writeFile(
+        targetAbsolutePath,
+        ensureTrailingNewline(translation),
+        'utf8'
+      );
 
       metadata[metaKey] = {
         source: relativeSourcePath,
@@ -111,21 +135,29 @@ const defaultTranslationCommand = JSON.stringify([
       };
       translatedCount += 1;
       metadataChanged = true;
-      console.log(`[translate] Updated ${targetRelativePath} (${sourceLang}→${targetLang}).`);
+      console.log(
+        `[translate] Updated ${targetRelativePath} (${sourceLang}→${targetLang}).`
+      );
     }
   }
 
   if (metadataChanged && !dryRun) {
-    await writeFile(metadataPath, `${JSON.stringify(metadata, null, 2)}\n`, 'utf8');
+    await writeFile(
+      metadataPath,
+      `${JSON.stringify(metadata, null, 2)}\n`,
+      'utf8'
+    );
     console.log(`[translate] Updated metadata: ${relative(metadataPath)}`);
   }
 
   if (translatedCount === 0) {
-    console.log(`[translate] No translations required${dryRun ? ' (dry-run)' : ''}.`);
+    console.log(
+      `[translate] No translations required${dryRun ? ' (dry-run)' : ''}.`
+    );
   } else {
     console.log(`[translate] Completed ${translatedCount} translation(s).`);
   }
-})().catch(error => {
+})().catch((error) => {
   console.error('[translate] Failed:', error);
   process.exit(1);
 });
@@ -158,7 +190,9 @@ async function loadMetadata(filePath) {
   try {
     return JSON.parse(content);
   } catch (error) {
-    throw new Error(`Failed to parse metadata JSON (${relative(filePath)}): ${error.message}`);
+    throw new Error(
+      `Failed to parse metadata JSON (${relative(filePath)}): ${error.message}`
+    );
   }
 }
 
@@ -172,7 +206,7 @@ function parseCsv(text) {
     }
     const cells = splitCsvLine(rawLine);
     if (!headers) {
-      headers = cells.map(header => header.trim());
+      headers = cells.map((header) => header.trim());
       continue;
     }
     const row = {};
@@ -216,7 +250,7 @@ function parseTargetLanguages(raw) {
   }
   return raw
     .split(/[;,]/)
-    .map(value => value.trim())
+    .map((value) => value.trim())
     .filter(Boolean);
 }
 
@@ -239,7 +273,8 @@ function ensureTrailingNewline(text) {
 }
 
 async function runGeminiTranslation(options) {
-  const commandSpec = process.env.GEMINI_TRANSLATION_CLI ?? defaultTranslationCommand;
+  const commandSpec =
+    process.env.GEMINI_TRANSLATION_CLI ?? defaultTranslationCommand;
 
   let commandParts;
   try {
@@ -249,24 +284,34 @@ async function runGeminiTranslation(options) {
   }
 
   if (!Array.isArray(commandParts) || commandParts.length === 0) {
-    throw new Error('GEMINI_TRANSLATION_CLI must be a JSON array with at least one element.');
+    throw new Error(
+      'GEMINI_TRANSLATION_CLI must be a JSON array with at least one element.'
+    );
   }
 
   const prompt = buildPrompt(options);
-  const promptPath = path.join(os.tmpdir(), `gemini-translate-${randomUUID()}.prompt`);
-  const outputPath = path.join(os.tmpdir(), `gemini-translate-${randomUUID()}.out`);
+  const promptPath = path.join(
+    os.tmpdir(),
+    `gemini-translate-${randomUUID()}.prompt`
+  );
+  const outputPath = path.join(
+    os.tmpdir(),
+    `gemini-translate-${randomUUID()}.out`
+  );
 
   await writeFile(promptPath, prompt, 'utf8');
 
-  const args = commandParts.slice(1).map(arg =>
-    arg
-      .replace('{PROMPT_FILE}', promptPath)
-      .replace('{OUTPUT_FILE}', outputPath)
-      .replace('{SOURCE_LANG}', options.sourceLang)
-      .replace('{TARGET_LANG}', options.targetLang)
-      .replace('{SOURCE_PATH}', options.relativeSourcePath)
-      .replace('{TARGET_PATH}', options.relativeTargetPath),
-  );
+  const args = commandParts
+    .slice(1)
+    .map((arg) =>
+      arg
+        .replace('{PROMPT_FILE}', promptPath)
+        .replace('{OUTPUT_FILE}', outputPath)
+        .replace('{SOURCE_LANG}', options.sourceLang)
+        .replace('{TARGET_LANG}', options.targetLang)
+        .replace('{SOURCE_PATH}', options.relativeSourcePath)
+        .replace('{TARGET_PATH}', options.relativeTargetPath)
+    );
 
   await execute(commandParts[0], args);
 
@@ -275,13 +320,20 @@ async function runGeminiTranslation(options) {
   await safeRemove(outputPath);
 
   if (!translation.trim()) {
-    throw new Error(`Gemini CLI returned an empty result for ${options.relativeSourcePath} (${options.sourceLang}→${options.targetLang}).`);
+    throw new Error(
+      `Gemini CLI returned an empty result for ${options.relativeSourcePath} (${options.sourceLang}→${options.targetLang}).`
+    );
   }
 
   return normalizeLineEndings(translation.trimEnd());
 }
 
-function buildPrompt({ sourceContent, sourceLang, targetLang, relativeSourcePath }) {
+function buildPrompt({
+  sourceContent,
+  sourceLang,
+  targetLang,
+  relativeSourcePath,
+}) {
   return [
     `You are a professional technical translator. Convert the following ${sourceLang.toUpperCase()} Markdown content into ${targetLang.toUpperCase()}.`,
     '',
@@ -306,11 +358,15 @@ async function execute(command, args) {
       env: process.env,
     });
     child.on('error', reject);
-    child.on('close', code => {
+    child.on('close', (code) => {
       if (code === 0) {
         resolve();
       } else {
-        reject(new Error(`Command "${command} ${args.join(' ')}" exited with code ${code}.`));
+        reject(
+          new Error(
+            `Command "${command} ${args.join(' ')}" exited with code ${code}.`
+          )
+        );
       }
     });
   });

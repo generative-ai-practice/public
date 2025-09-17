@@ -59,11 +59,11 @@ jobs:
 
       - name: 'Run Gemini translation orchestrator'
         env:
-          GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
-          GOOGLE_API_KEY: '${{ secrets.GOOGLE_API_KEY }}'
-          GOOGLE_CLOUD_PROJECT: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
-          GOOGLE_CLOUD_LOCATION: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
-          GEMINI_TRANSLATION_MODEL: '${{ vars.GEMINI_TRANSLATION_MODEL || 'gemini-1.5-pro' }}'
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_LOCATION: ${{ vars.GOOGLE_CLOUD_LOCATION }}
+          GEMINI_TRANSLATION_MODEL: ${{ vars.GEMINI_TRANSLATION_MODEL || 'gemini-1.5-pro' }}
           GEMINI_TRANSLATION_CLI: >-
             ["bash","-lc","gemini text \
               --model ${GEMINI_TRANSLATION_MODEL:-gemini-1.5-pro} \
@@ -72,7 +72,7 @@ jobs:
               --use-vertex-ai=${{ vars.GOOGLE_GENAI_USE_VERTEXAI }} \
               --project=${{ vars.GOOGLE_CLOUD_PROJECT }} \
               --location=${{ vars.GOOGLE_CLOUD_LOCATION }}"]
-          TRANSLATION_ALLOWED_LANGUAGES: 'en,ja'
+          TRANSLATION_ALLOWED_LANGUAGES: en,ja
         run: |
           node scripts/translate-docs.mjs
 
