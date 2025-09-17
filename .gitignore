@@ -14,7 +14,7 @@ node_modules/
 .yarn-integrity
 
 # Yarn PnP/editor SDKs (generated per-machine; do not commit)
-+.yarn/sdks
+.yarn/sdks
 
 # Production
 /build
