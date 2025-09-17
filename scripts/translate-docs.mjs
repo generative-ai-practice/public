@@ -256,11 +256,17 @@ function parseTargetLanguages(raw) {
 
 function deriveTargetPath(relativePath, sourceLang, targetLang) {
   const parsed = path.parse(relativePath);
-  const suffix = `_${sourceLang}`;
   let baseName = parsed.name;
-  if (baseName.endsWith(suffix)) {
-    baseName = baseName.slice(0, -suffix.length);
+
+  if (baseName.endsWith('_original')) {
+    baseName = baseName.slice(0, -'_original'.length);
+  } else {
+    const suffix = `_${sourceLang}`;
+    if (baseName.endsWith(suffix)) {
+      baseName = baseName.slice(0, -suffix.length);
+    }
   }
+
   return path.join(parsed.dir, `${baseName}_${targetLang}${parsed.ext}`);
 }
 
