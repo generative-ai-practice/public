@@ -1,0 +1,7 @@
+reviews:
+  auto_review:
+    ignore_usernames: [
+      "dependabot[bot]",
+      "renovate[bot]", 
+      "ci-automation"
+    ]
