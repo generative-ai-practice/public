@@ -56,15 +56,17 @@ interface TranslationCommandOptions {
 }
 
 const repoRoot = process.cwd();
-const csvPath = resolvePath(process.env.TRANSLATION_CSV ?? 'translations/targets.csv');
+const csvPath = resolvePath(
+  process.env.TRANSLATION_CSV ?? 'translations/targets.csv'
+);
 const metadataPath = resolvePath(
-  process.env.TRANSLATION_METADATA ?? '.translations.json',
+  process.env.TRANSLATION_METADATA ?? '.translations.json'
 );
 const allowedLanguages = new Set(
   (process.env.TRANSLATION_ALLOWED_LANGUAGES ?? 'en,ja')
     .split(',')
     .map((value) => value.trim())
-    .filter((value) => value.length > 0),
+    .filter((value) => value.length > 0)
 );
 const dryRun = process.argv.includes('--dry-run');
 const defaultTranslationCommand = JSON.stringify([
@@ -95,13 +97,13 @@ void (async () => {
     const sourceLang = row.src_lang;
     if (!relativeSourcePath || !sourceLang) {
       console.warn(
-        `[translate] Skipping row with missing path or src_lang: ${JSON.stringify(row)}`,
+        `[translate] Skipping row with missing path or src_lang: ${JSON.stringify(row)}`
       );
       continue;
     }
     if (!allowedLanguages.has(sourceLang)) {
       console.warn(
-        `[translate] Source language "${sourceLang}" is not allowed. Skipping ${relativeSourcePath}.`,
+        `[translate] Source language "${sourceLang}" is not allowed. Skipping ${relativeSourcePath}.`
       );
       continue;
     }
@@ -109,7 +111,7 @@ void (async () => {
     const targetLangs = parseTargetLanguages(row.target_langs);
     if (targetLangs.length === 0) {
       console.warn(
-        `[translate] No target languages specified for ${relativeSourcePath}.`,
+        `[translate] No target languages specified for ${relativeSourcePath}.`
       );
       continue;
     }
@@ -126,7 +128,7 @@ void (async () => {
     for (const targetLang of targetLangs) {
       if (!allowedLanguages.has(targetLang)) {
         console.warn(
-          `[translate] Target language "${targetLang}" is not allowed for ${relativeSourcePath}.`,
+          `[translate] Target language "${targetLang}" is not allowed for ${relativeSourcePath}.`
         );
         continue;
       }
@@ -137,7 +139,7 @@ void (async () => {
       const targetRelativePath = deriveTargetPath(
         relativeSourcePath,
         sourceLang,
-        targetLang,
+        targetLang
       );
       const targetAbsolutePath = resolvePath(targetRelativePath);
       const metaKey = `${relativeSourcePath}::${sourceLang}->${targetLang}`;
@@ -145,17 +147,17 @@ void (async () => {
 
       if (metaEntry && metaEntry.sourceHash === sourceHash) {
         console.log(
-          `[translate] Up-to-date: ${relativeSourcePath} (${sourceLang}→${targetLang}).`,
+          `[translate] Up-to-date: ${relativeSourcePath} (${sourceLang}→${targetLang}).`
         );
         continue;
       }
 
       const segments = splitContentIntoSegments(sourceContent);
       const previousSegmentTranslations = buildSegmentTranslationMap(
-        metaEntry?.segments ?? [],
+        metaEntry?.segments ?? []
       );
       const segmentResults: Array<SegmentResult | undefined> = new Array(
-        segments.length,
+        segments.length
       );
       const pendingSegments: PendingSegment[] = [];
 
@@ -195,7 +197,7 @@ void (async () => {
       if (pendingSegments.length === 0) {
         if (dryRun) {
           console.log(
-            `[translate] (dry-run) No segment changes detected for ${relativeSourcePath} (${sourceLang}→${targetLang}).`,
+            `[translate] (dry-run) No segment changes detected for ${relativeSourcePath} (${sourceLang}→${targetLang}).`
           );
           continue;
         }
@@ -215,14 +217,14 @@ void (async () => {
         };
         metadataChanged = true;
         console.log(
-          `[translate] Reused existing translations for ${relativeSourcePath} (${sourceLang}→${targetLang}).`,
+          `[translate] Reused existing translations for ${relativeSourcePath} (${sourceLang}→${targetLang}).`
         );
         continue;
       }
 
       if (dryRun) {
         console.log(
-          `[translate] (dry-run) Would translate ${pendingSegments.length} segment(s) for ${relativeSourcePath} (${sourceLang}→${targetLang}).`,
+          `[translate] (dry-run) Would translate ${pendingSegments.length} segment(s) for ${relativeSourcePath} (${sourceLang}→${targetLang}).`
         );
         continue;
       }
@@ -240,7 +242,7 @@ void (async () => {
         const translation = sanitizeTranslation(rawTranslation);
         if (!translation || translation === 'ERROR') {
           throw new Error(
-            `Gemini CLI returned an unusable result for ${relativeSourcePath} segment ${pending.index + 1}.`,
+            `Gemini CLI returned an unusable result for ${relativeSourcePath} segment ${pending.index + 1}.`
           );
         }
 
@@ -252,11 +254,12 @@ void (async () => {
       }
 
       const completedResults = ensureCompleteSegmentResults(segmentResults);
-      const translatedContent = reconstructContentFromSegments(completedResults);
+      const translatedContent =
+        reconstructContentFromSegments(completedResults);
       await writeFile(
         targetAbsolutePath,
         ensureTrailingNewline(translatedContent),
-        'utf8',
+        'utf8'
       );
 
       metadata[metaKey] = {
@@ -274,7 +277,7 @@ void (async () => {
       translatedCount += 1;
       metadataChanged = true;
       console.log(
-        `[translate] Updated ${targetRelativePath} (${sourceLang}→${targetLang}) with ${pendingSegments.length} new segment(s).`,
+        `[translate] Updated ${targetRelativePath} (${sourceLang}→${targetLang}) with ${pendingSegments.length} new segment(s).`
       );
     }
   }
@@ -283,14 +286,14 @@ void (async () => {
     await writeFile(
       metadataPath,
       `${JSON.stringify(metadata, null, 2)}\n`,
-      'utf8',
+      'utf8'
     );
     console.log(`[translate] Updated metadata: ${relative(metadataPath)}`);
   }
 
   if (translatedCount === 0) {
     console.log(
-      `[translate] No translations required${dryRun ? ' (dry-run)' : ''}.`,
+      `[translate] No translations required${dryRun ? ' (dry-run)' : ''}.`
     );
   } else {
     console.log(`[translate] Completed ${translatedCount} translation(s).`);
@@ -333,7 +336,7 @@ async function loadMetadata(filePath: string): Promise<TranslationMetadata> {
     throw new Error('Metadata JSON is not an object.');
   } catch (error) {
     throw new Error(
-      `Failed to parse metadata JSON (${relative(filePath)}): ${(error as Error).message}`,
+      `Failed to parse metadata JSON (${relative(filePath)}): ${(error as Error).message}`
     );
   }
 }
@@ -419,7 +422,9 @@ function splitContentIntoSegments(content: string): Segment[] {
   return segments;
 }
 
-function buildSegmentTranslationMap(segmentMetadata: StoredSegment[]): Map<string, string[]> {
+function buildSegmentTranslationMap(
+  segmentMetadata: StoredSegment[]
+): Map<string, string[]> {
   const map = new Map<string, string[]>();
   for (const segment of segmentMetadata) {
     if (!segment || !segment.hash) {
@@ -437,7 +442,7 @@ function buildSegmentTranslationMap(segmentMetadata: StoredSegment[]): Map<strin
 }
 
 function ensureCompleteSegmentResults(
-  results: Array<SegmentResult | undefined>,
+  results: Array<SegmentResult | undefined>
 ): SegmentResult[] {
   const completed: SegmentResult[] = [];
   results.forEach((segment, index) => {
@@ -449,10 +454,14 @@ function ensureCompleteSegmentResults(
   return completed;
 }
 
-function reconstructContentFromSegments(segmentResults: SegmentResult[]): string {
+function reconstructContentFromSegments(
+  segmentResults: SegmentResult[]
+): string {
   let combined = '';
   segmentResults.forEach((segment) => {
-    const translation = normalizeLineEndings(segment.translation ?? '').trimEnd();
+    const translation = normalizeLineEndings(
+      segment.translation ?? ''
+    ).trimEnd();
     combined += translation;
     combined += segment.separator ?? '';
   });
@@ -479,15 +488,13 @@ function sanitizeTranslation(rawText: string): string {
     /^please\s+manually.*$/i,
   ];
 
-  const cleanedLines = text
-    .split('\n')
-    .filter((line) => {
-      const trimmed = line.trim();
-      if (trimmed === '') {
-        return true;
-      }
-      return !disclaimerPatterns.some((pattern) => pattern.test(trimmed));
-    });
+  const cleanedLines = text.split('\n').filter((line) => {
+    const trimmed = line.trim();
+    if (trimmed === '') {
+      return true;
+    }
+    return !disclaimerPatterns.some((pattern) => pattern.test(trimmed));
+  });
 
   text = cleanedLines.join('\n').trim();
 
@@ -519,7 +526,11 @@ function deduplicateParagraphs(text: string): string {
   return kept.join('\n\n');
 }
 
-function deriveTargetPath(relativePath: string, sourceLang: string, targetLang: string): string {
+function deriveTargetPath(
+  relativePath: string,
+  sourceLang: string,
+  targetLang: string
+): string {
   const parsed = path.parse(relativePath);
   let baseName = parsed.name;
 
@@ -544,19 +555,20 @@ function ensureTrailingNewline(text: string): string {
 }
 
 async function runGeminiTranslation(
-  options: TranslationCommandOptions,
+  options: TranslationCommandOptions
 ): Promise<string> {
-  const commandSpec = process.env.GEMINI_TRANSLATION_CLI ?? defaultTranslationCommand;
+  const commandSpec =
+    process.env.GEMINI_TRANSLATION_CLI ?? defaultTranslationCommand;
   const commandParts = parseCommandSpec(commandSpec);
 
   const prompt = buildPrompt(options);
   const promptPath = path.join(
     os.tmpdir(),
-    `gemini-translate-${randomUUID()}.prompt`,
+    `gemini-translate-${randomUUID()}.prompt`
   );
   const outputPath = path.join(
     os.tmpdir(),
-    `gemini-translate-${randomUUID()}.out`,
+    `gemini-translate-${randomUUID()}.out`
   );
 
   await writeFile(promptPath, prompt, 'utf8');
@@ -570,7 +582,7 @@ async function runGeminiTranslation(
         .replace('{SOURCE_LANG}', options.sourceLang)
         .replace('{TARGET_LANG}', options.targetLang)
         .replace('{SOURCE_PATH}', options.relativeSourcePath)
-        .replace('{TARGET_PATH}', options.relativeTargetPath),
+        .replace('{TARGET_PATH}', options.relativeTargetPath)
     );
 
   await execute(commandParts[0]!, args);
@@ -581,7 +593,7 @@ async function runGeminiTranslation(
 
   if (!translation.trim()) {
     throw new Error(
-      `Gemini CLI returned an empty result for ${options.relativeSourcePath} (${options.sourceLang}→${options.targetLang}).`,
+      `Gemini CLI returned an empty result for ${options.relativeSourcePath} (${options.sourceLang}→${options.targetLang}).`
     );
   }
 
@@ -627,7 +639,9 @@ async function execute(command: string, args: string[]): Promise<void> {
         resolve();
       } else {
         reject(
-          new Error(`Command "${command} ${args.join(' ')}" exited with code ${code}.`),
+          new Error(
+            `Command "${command} ${args.join(' ')}" exited with code ${code}.`
+          )
         );
       }
     });
@@ -652,10 +666,15 @@ function parseCommandSpec(spec: string): string[] {
   try {
     parsed = JSON.parse(spec);
   } catch (error) {
-    throw new Error(`Failed to parse GEMINI_TRANSLATION_CLI: ${(error as Error).message}`);
+    throw new Error(
+      `Failed to parse GEMINI_TRANSLATION_CLI: ${(error as Error).message}`
+    );
   }
 
-  if (!Array.isArray(parsed) || parsed.some((part) => typeof part !== 'string')) {
+  if (
+    !Array.isArray(parsed) ||
+    parsed.some((part) => typeof part !== 'string')
+  ) {
     throw new Error('GEMINI_TRANSLATION_CLI must be a JSON array of strings.');
   }
 
