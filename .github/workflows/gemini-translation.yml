@@ -10,7 +10,7 @@ on:
       - 'docs/**/*.md'
       - 'translations/**'
       - '.translations.json'
-      - 'scripts/translate-docs.mjs'
+      - 'scripts/translate-docs.ts'
   workflow_dispatch: {}
 
 concurrency:
@@ -76,7 +76,7 @@ jobs:
             ["bash","-lc","set -eo pipefail; PROMPT=$(cat {PROMPT_FILE}); gemini --model ${GEMINI_TRANSLATION_MODEL:-gemini-1.5-pro} \"$PROMPT\" > {OUTPUT_FILE}"]
           TRANSLATION_ALLOWED_LANGUAGES: en,ja
         run: |
-          node scripts/translate-docs.mjs
+          yarn translate
 
       - name: 'Check for changes'
         id: 'git_status'
