@@ -72,7 +72,7 @@ const dryRun = process.argv.includes('--dry-run');
 const defaultTranslationCommand = JSON.stringify([
   'bash',
   '-lc',
-  'gemini text --model ${GEMINI_TRANSLATION_MODEL:-gemini-1.5-pro} --input-file {PROMPT_FILE} --output-file {OUTPUT_FILE}',
+  'gemini text --model ${GEMINI_TRANSLATION_MODEL:-gemini-1.5-pro} --input-file "{PROMPT_FILE}" --output-file "{OUTPUT_FILE}"',
 ]);
 
 void (async () => {
