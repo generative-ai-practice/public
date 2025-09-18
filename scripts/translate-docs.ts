@@ -251,6 +251,10 @@ void (async () => {
           translation,
           separator: pending.separator,
         };
+
+        console.log(
+          `[translate] Translated segment ${pending.index + 1}/${segments.length} for ${relativeSourcePath} (${sourceLang}→${targetLang}).`
+        );
       }
 
       const completedResults = ensureCompleteSegmentResults(segmentResults);
