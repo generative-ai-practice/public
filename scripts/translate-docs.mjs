@@ -128,7 +128,7 @@ const defaultTranslationCommand = JSON.stringify([
           const reusedTranslation = reuseList.shift();
           segmentResults[index] = {
             hash,
-            translation: reusedTranslation,
+            translation: sanitizeTranslation(reusedTranslation),
             separator: segment.separator,
           };
         } else {
@@ -178,13 +178,19 @@ const defaultTranslationCommand = JSON.stringify([
       await mkdir(path.dirname(targetAbsolutePath), { recursive: true });
 
       for (const pending of pendingSegments) {
-        const translation = await runGeminiTranslation({
+        const rawTranslation = await runGeminiTranslation({
           sourceContent: pending.body,
           sourceLang,
           targetLang,
           relativeSourcePath: `${relativeSourcePath} (segment ${pending.index + 1}/${segments.length})`,
           relativeTargetPath: `${targetRelativePath} (segment ${pending.index + 1}/${segments.length})`,
         });
+        const translation = sanitizeTranslation(rawTranslation);
+        if (!translation || translation === 'ERROR') {
+          throw new Error(
+            `Gemini CLI returned an unusable result for ${relativeSourcePath} segment ${pending.index + 1}.`
+          );
+        }
         segmentResults[pending.index] = {
           hash: pending.hash,
           translation,
@@ -364,7 +370,10 @@ function buildSegmentTranslationMap(segmentMetadata) {
     if (!map.has(segment.hash)) {
       map.set(segment.hash, []);
     }
-    map.get(segment.hash).push(segment.translation ?? '');
+    const cleaned = sanitizeTranslation(segment.translation ?? '');
+    if (cleaned) {
+      map.get(segment.hash).push(cleaned);
+    }
   }
   return map;
 }
@@ -382,6 +391,64 @@ function reconstructContentFromSegments(segmentResults) {
     combined += segment.separator ?? '';
   });
   return combined;
+}
+
+function sanitizeTranslation(rawText) {
+  let text = normalizeLineEndings(rawText ?? '').trim();
+
+  if (text === '') {
+    return '';
+  }
+
+  const outerFenceMatch = text.match(/^```[\w-]*\n([\s\S]*?)\n```$/);
+  if (outerFenceMatch) {
+    text = outerFenceMatch[1].trim();
+  }
+
+  const disclaimerPatterns = [
+    /^ok\.\s.*$/i,
+    /^i\s+apologize.*$/i,
+    /^my\s+apologies.*$/i,
+    /^i\s+cannot.*$/i,
+    /^please\s+manually.*$/i,
+  ];
+
+  const cleanedLines = text.split('\n').filter((line) => {
+    const trimmed = line.trim();
+    if (trimmed === '') {
+      return true;
+    }
+    return !disclaimerPatterns.some((pattern) => pattern.test(trimmed));
+  });
+
+  text = cleanedLines.join('\n').trim();
+
+  if (text === '') {
+    return '';
+  }
+
+  const deduped = deduplicateParagraphs(text);
+  return deduped.trim();
+}
+
+function deduplicateParagraphs(text) {
+  const parts = text.split(/\n{2,}/);
+  const seen = new Set();
+  const kept = [];
+
+  parts.forEach((part) => {
+    const key = part.trim();
+    if (!key) {
+      return;
+    }
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    kept.push(part);
+  });
+
+  return kept.join('\n\n');
 }
 
 function deriveTargetPath(relativePath, sourceLang, targetLang) {
@@ -476,8 +543,12 @@ function buildPrompt({
     'Guidelines:',
     '- Preserve Markdown structure, lists, tables, code blocks, inline formatting, and URLs.',
     '- Keep existing front matter or raw HTML untouched unless translation is required inside.',
-    '- Do not add commentary, explanations, or diff markers.',
+    '- Do not add commentary, apologies, explanations, or diff markers.',
+    '- Do not wrap the entire response in a code fence unless the source segment is already fully enclosed in a code fence with the same language tag.',
+    '- Output the translation only. Do not reference tools, editing limitations, or the translation process.',
     '- Maintain existing spacing and blank lines where possible.',
+    '',
+    'If you cannot comply, respond with the single word "ERROR".',
     '',
     `Source file: ${relativeSourcePath}`,
     '',
