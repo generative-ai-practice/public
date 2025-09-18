@@ -1,1 +1,242 @@
-{}
+{
+  "README_original.md::ja->en": {
+    "source": "README_original.md",
+    "target": "README_en.md",
+    "sourceLang": "ja",
+    "targetLang": "en",
+    "sourceHash": "49eb6224388cb295ec989bc15d8e9317dca414fe9224f6b1bbacb69c18a6c384",
+    "translatedAt": "2025-09-18T17:03:36.863Z",
+    "segments": [
+      {
+        "hash": "52ca284965ad4ec3544543143322aba06b1a9a25ad39ecb88f337ba9c310a935",
+        "translation": "# public"
+      },
+      {
+        "hash": "0db78b9c64156e491307c760699c2e8e626c9bf14a9cacff9e9dd42b15887ac9",
+        "translation": "## Claude"
+      },
+      {
+        "hash": "515e1b2dcbd2195e59c1b99c4a62f70b14cf52b0f69a4b3f277acbcd73938c78",
+        "translation": "claude"
+      },
+      {
+        "hash": "83808d54bcd63fea3a522ccc0ba3de6da9fbc00593476eee0a2de5fd2a4ccb9d",
+        "translation": "/init"
+      },
+      {
+        "hash": "54816582ec58b5ada49a00674e1f7865dcfc2492582790e196a4661604612442",
+        "translation": "## Gemini"
+      },
+      {
+        "hash": "f5eef6a22789829f94d9f1dd5f992995ca9add1c76d09fa73fbe086ebe6b1c1e",
+        "translation": "gemini"
+      },
+      {
+        "hash": "b4a9500f67f775bfa30d067d63b48a0eac7efc771e6c9c40fcca1c0fd75aa9ed",
+        "translation": "### How to Log in to Gemini"
+      },
+      {
+        "hash": "b0777464d360d2b8d508dc97481bf514c6622ba827b9a03128d436830e7d03b8",
+        "translation": "/auth"
+      },
+      {
+        "hash": "1d51de54ea2a96ea84efc0a841f2a3d91711169500d5cb1a0a60d7cb7105a105",
+        "translation": "1. Login with Google <- select\n2. Use Gemini API Key\n3. Vertex AI"
+      },
+      {
+        "hash": "00474963b6116e1df6a051293be229a0e65df507faf4ad0b6659e9bcc819d08c",
+        "translation": "### Gemini API Key"
+      },
+      {
+        "hash": "c0e46438883effbbc24a54de50c41e85df2953f0da85edbd6fe0d2b343e49ab6",
+        "translation": "- `repogitory name` + `settings/secrets/actions`\n- GEMINI_API_KEY\n- https://aistudio.google.com/apikey"
+      }
+    ]
+  },
+  "docs/github-workflows_original.md::ja->en": {
+    "source": "docs/github-workflows_original.md",
+    "target": "docs/github-workflows_en.md",
+    "sourceLang": "ja",
+    "targetLang": "en",
+    "sourceHash": "589f7ac0d633ff3edc3fb4a589b9dae57f51ed525fb34c91842927436b3ea023",
+    "translatedAt": "2025-09-18T17:18:01.423Z",
+    "segments": [
+      {
+        "hash": "5a947b779183390a5c930460b8ea8fa53dfe7c4905d9ce8c1211300117233537",
+        "translation": "# GitHub Workflows Explanation"
+      },
+      {
+        "hash": "b4c6fce72b814f965fbb29a83e2c3a8e6c961c8ecef866f5c09a3e1a91388314",
+        "translation": "## Overview"
+      },
+      {
+        "hash": "d7baf91fc2168d6a6465cee48742aa2e932c4458095b2ecb4c4ae19cff8d8d53",
+        "translation": "This repository contains five GitHub Actions workflows that automate processes using Gemini AI."
+      },
+      {
+        "hash": "2bde0e0d8b8131d2e4ac0f7c2335d79af21787cf7ef97aece7e572bcaf8487c3",
+        "translation": "## Workflow Configuration"
+      },
+      {
+        "hash": "5c3e03cc6fee35598fc2fbe4e87f0ad2afd89bd60e7a5936b40147b982b27419",
+        "translation": "### 1. 🔀 Gemini Dispatch (`gemini-dispatch.yml`)"
+      },
+      {
+        "hash": "7289c4d1b0db0f44a4d5ae031d21f27d5f9bee3e7deefc3d8572ba6541551236",
+        "translation": "**Main dispatch workflow**"
+      },
+      {
+        "hash": "92ead4ad8d8095b78c7dab02d8637b39b9b8b667d64cad39b1805b96d0828ba4",
+        "translation": "#### Trigger conditions"
+      },
+      {
+        "hash": "b290a8318322e9124d15049349c441fa3ed8e837095c31ad941820e73add377f",
+        "translation": "- Creating, reviewing, and commenting on Pull Requests\n- Creating, reopening, and commenting on Issues"
+      },
+      {
+        "hash": "c2426e094293d6d4b853f2e79fd1900fb1abc0ac7a335fe4efdb285fa46fb606",
+        "translation": "#### Conditional Branching"
+      },
+      {
+        "hash": "82a4b0dc92831d97d8674c1a8ce1916c1312cb89c3df52c29f90b34a61265f67",
+        "translation": "- ` @gemini-cli /review` → Run Review workflow\n- ` @gemini-cli /triage` → Run Triage workflow\n- ` @gemini-cli [other]` → Run Invoke workflow\n- When a PR is opened → Automatically run Review\n- When an issue is opened → Automatically run Triage"
+      },
+      {
+        "hash": "83c417c1716c4bc43263fa175f23bda4cf8cb8a89120eef147fbc18858e05203",
+        "translation": "#### Permission check"
+      },
+      {
+        "hash": "e9f9cd96480cc199d5ceaf49e4b3dcda1bb8f146b4d94d8ad386b0988ac4ebe4",
+        "translation": "- Ignore PRs from forks\n- Accept comments only from OWNER/MEMBER/COLLABORATOR"
+      },
+      {
+        "hash": "54392f42deaee9f92bb08406f8451bda2284bb16fc2fd5a0ffc9fcff173aceb8",
+        "translation": "### 2. 🔎 Gemini Review (`gemini-review.yml`)"
+      },
+      {
+        "hash": "dec8c6a5d05aa6d3f8d15e172c55d83c270c470790fac96b4c9cd63e6af17165",
+        "translation": "**Automatic Pull Request Review**"
+      },
+      {
+        "hash": "c5ba4d0d0e6102b0af1242b49a70b96ab16773bf191df6fa4f787114a0c06efe",
+        "translation": "#### Gemini API to use"
+      },
+      {
+        "hash": "2bfe2c7ddddd56c98ea01989ce8c51b7c327e4630c4eb65f2ac81035e951f5b0",
+        "translation": "- Use the `google-github-actions/run-gemini-cli @v0` action\n- Authenticate with Vertex AI or Gemini API Key\n- Configuration: `vars.GOOGLE_GENAI_USE_VERTEXAI`, `secrets.GEMINI_API_KEY`"
+      },
+      {
+        "hash": "edc78c98917408bdee1ffbe411573cb3d97ab1eae0cb69004c2b5cfd1408be98",
+        "translation": "#### Prompt Content"
+      },
+      {
+        "hash": "8ab141d28dd6e1d68bbf7dabd1ac17759ab2c02d5a23a5cc440db6cbeda32de6",
+        "translation": "Detailed review instructions are provided in the `prompt` section (lines 104-272):"
+      },
+      {
+        "hash": "66f0d477b5b2327bc93526d411ebe180d8fcf548a331301dfab8b729a5a912a6",
+        "translation": "- Code quality check (accuracy, security, efficiency)\n- Maintainability, testing, and performance evaluation\n- Categorization of comments by importance (🔴Critical〜🟢Low)\n- Posting review comments directly to GitHub PRs"
+      },
+      {
+        "hash": "2f944f04df2e9c263d22d4bbcce765979cc0bbd092af77f7aefca0dff2f0c03c",
+        "translation": "#### MCP Server Settings"
+      },
+      {
+        "hash": "1793e24ea20f8acad83870bc2e1bc7fa410e2406ff81cea598389f22a5839928",
+        "translation": "Execute PR operations using the GitHub MCP server:"
+      },
+      {
+        "hash": "0e2bec9a298b641fdc1dc8d1b170719cd112ac1f2181b16f50976440aa8a29f6",
+        "translation": "- `get_pull_request_diff`, `create_pending_pull_request_review`\n- `add_comment_to_pending_review`, `submit_pending_pull_request_review`"
+      },
+      {
+        "hash": "ba77b9209f3edc50a4bdb4cfd01f7780f5cad8db8cccf2071f876ee58816ef0f",
+        "translation": "### 3. 🔀 Gemini Triage (`gemini-triage.yml`)"
+      },
+      {
+        "hash": "221cf37d2eb0203d7c2c8a86fa81be2c042f098d4b2c630f8b9176f3b7265250",
+        "translation": "**Automatic issue triage**"
+      },
+      {
+        "hash": "c34aeb861a4c090ab8f970900004650f53a01725bd27d58de185f840750823f7",
+        "translation": "#### Features"
+      },
+      {
+        "hash": "c3beaf5cf017e36953f492529ef06b88ae4a2dacbc6b577f715cf60e9a8b6978",
+        "translation": "- Get a list of labels in the repository\n- Analyze the issue content and suggest labeling\n- Perform triage with a more concise prompt"
+      },
+      {
+        "hash": "4bb55a188e8f4ae43f82080a79ccf71ac1e3c002f82932c11f12cadf4cec676d",
+        "translation": "### 4. 🔀 Gemini Invoke (`gemini-invoke.yml`)"
+      },
+      {
+        "hash": "7fa4b33a616f87208ea871f004755ea7390c0e60f51e60569e0399d723200f50",
+        "translation": "**Generic Gemini invocation**"
+      },
+      {
+        "hash": "899bbd7744ce275df840dae7b54ab8dd349e314319f0331bb5e7b3d0e04ee377",
+        "translation": "#### Usage"
+      },
+      {
+        "hash": "f17c38c468cbf2fffc6c88b8f492a79f54e79180f3f0bbabc499fb0b376f78ee",
+        "translation": "- Responds to any request from the user\n- Treats content following ` @gemini-cli` as additional context"
+      },
+      {
+        "hash": "f732482e499aacf29eabc07fa15e0f58cd278e9e2be76c9d3df8fc61c2f4b106",
+        "translation": "### 5. 🔀 Gemini Scheduled Triage (`gemini-scheduled-triage.yml`)"
+      },
+      {
+        "hash": "2956f28adf7b9092d519c98b0a6aa7d5df018cdd8a82a3124a3cb8bfd594901a",
+        "translation": "**Triage on a regular basis**"
+      },
+      {
+        "hash": "96feaf720e4fb8201d7782a5274cbc9a959b13dc77aba9adc6c18b529e7d7f1e",
+        "translation": "#### Schedule"
+      },
+      {
+        "hash": "efa22741c5c9dba19a22d285c1ed7b8e4ac98533cb50b83621a6ccb61bb63c53",
+        "translation": "- Automatically executed at set times\n- Regularly triage unsupported issues"
+      },
+      {
+        "hash": "75019c7f5895161cf7cf3cb9860841ac0467240e8f503fab726e5a37e1c40499",
+        "translation": "## Authentication and Configuration"
+      },
+      {
+        "hash": "e5be17c2343db0b4cfdb3fe04a2626e4f51cc7750226457c9390fd1a83c20407",
+        "translation": "### Required environment variables/secrets"
+      },
+      {
+        "hash": "86b5c603740792e2c59af5052a3894a21c00e0bf735a0efbdc53770ddb7ff8ec",
+        "translation": "- `vars.APP_ID`, `secrets.APP_PRIVATE_KEY` - GitHub App authentication\n- `secrets.GEMINI_API_KEY` or `secrets.GOOGLE_API_KEY` - Gemini API\n- `vars.GCP_WIF_PROVIDER`, `vars.GOOGLE_CLOUD_PROJECT` - For Vertex AI\n- `vars.SERVICE_ACCOUNT_EMAIL` - GCP service account"
+      },
+      {
+        "hash": "deaa29a571fc55135c70aedc3379ab2e231b0d08c309447ca524221c5edcfbf6",
+        "translation": "### Gemini Configuration"
+      },
+      {
+        "hash": "1ec32ed571868bbd909a0fc3012330bec44a77a35cc630fd371ad69c1ef8e059",
+        "translation": "- Vertex AI Usage: `vars.GOOGLE_GENAI_USE_VERTEXAI`\n- Code Assist Usage: `vars.GOOGLE_GENAI_USE_GCA`\n- Debug Mode: `vars.DEBUG`"
+      },
+      {
+        "hash": "d440eaabf50f48df53a8e3fe043020d0aca20304becfa6aa657a57a2b843c7f8",
+        "translation": "## Prompt Location"
+      },
+      {
+        "hash": "9c63019d2dda151f77a01afa6510321c30e686dabd325e91867980fcd0a028fd",
+        "translation": "Detailed instructions are provided in the `prompt` section of each workflow file:"
+      },
+      {
+        "hash": "2fa08e4d69d8e1ef4c855b5bd4991de5fc1b2deb09a34e44158fb1c7bd509c4e",
+        "translation": "- **Review**: Detailed code review instructions on line 272\n- **Triage**: Instructions for issue classification and labeling\n- **Invoke**: Generic interactive instructions"
+      },
+      {
+        "hash": "dfd064211203c4d950503c601e6b87c49799ada2638352a394e2d1a9b7c87559",
+        "translation": "## Execution Flow"
+      },
+      {
+        "hash": "065734d10623b8febdc0596a54d1798f44f143f11f874368dcaabb7c338cb922",
+        "translation": "1. **Dispatch** analyzes and distributes requests\n2. Executes the corresponding dedicated workflow (Review/Triage/Invoke)\n3. Gemini AI executes processing according to instructions\n4. Posts the results to GitHub (PR/Issue)\n5. In case of error, posts an error message via `fallthrough`"
+      }
+    ]
+  }
+}
