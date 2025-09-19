@@ -58,8 +58,8 @@
     "target": "docs/github-workflows_en.md",
     "sourceLang": "ja",
     "targetLang": "en",
-    "sourceHash": "589f7ac0d633ff3edc3fb4a589b9dae57f51ed525fb34c91842927436b3ea023",
-    "translatedAt": "2025-09-19T04:50:59.154Z",
+    "sourceHash": "269b4a65f01fb636821456ae430c297c31bccf4f6abee206127e9496512788b8",
+    "translatedAt": "2025-09-19T05:08:36.871Z",
     "segments": [
       {
         "hash": "5a947b779183390a5c930460b8ea8fa53dfe7c4905d9ce8c1211300117233537",
@@ -70,8 +70,8 @@
         "translation": "## Overview"
       },
       {
-        "hash": "d7baf91fc2168d6a6465cee48742aa2e932c4458095b2ecb4c4ae19cff8d8d53",
-        "translation": "This repository contains five GitHub Actions workflows that automate processes using Gemini AI."
+        "hash": "7eee8c0b4583de748c49cd5650853cdd5de1a06200b4afeb72fb01398714e507",
+        "translation": "This repository contains five GitHub Actions workflows that automate processes using Gemini AI.  A detailed explanation of the document translation pipeline is also provided in `docs/translation-workflow.md`."
       },
       {
         "hash": "2bde0e0d8b8131d2e4ac0f7c2335d79af21787cf7ef97aece7e572bcaf8487c3",
@@ -236,6 +236,72 @@
       {
         "hash": "065734d10623b8febdc0596a54d1798f44f143f11f874368dcaabb7c338cb922",
         "translation": "1. **Dispatch** analyzes and routes the request\n2. Executes the corresponding workflow (Review/Triage/Invoke)\n3. Gemini AI processes according to the instructions\n4. Posts the results to GitHub (PR/Issue)\n5. In case of error, posts an error message via `fallthrough`"
+      }
+    ]
+  },
+  "docs/translation-workflow_original.md::ja->en": {
+    "source": "docs/translation-workflow_original.md",
+    "target": "docs/translation-workflow_en.md",
+    "sourceLang": "ja",
+    "targetLang": "en",
+    "sourceHash": "e355444e2c4630eb94c0a0aeb7202425088c38f88444101b579405bee7c4b485",
+    "translatedAt": "2025-09-19T05:09:02.677Z",
+    "segments": [
+      {
+        "hash": "67582fc62e825c92f8b08ea5603a5b9005eae1c0ab2f8fa32713fe86fe1bf132",
+        "translation": "# Translation Workflow Overview"
+      },
+      {
+        "hash": "4f842a2821c89b77613dcb6028865c954599da08c1f47812ed564ed99ca8580a",
+        "translation": "This document summarizes the behavior of the document translation pipeline, primarily focusing on `scripts/translate-docs.ts`."
+      },
+      {
+        "hash": "bc938f987cf6bb1d4304ecbdcaa09e8d5d226848cbcc68fb95458d26fbba996b",
+        "translation": "## Input Definitions"
+      },
+      {
+        "hash": "db8f2bd37449ac541483bddc93b40dce492de3b785185ef053fc3f5c71620245",
+        "translation": "- `translations/targets.csv`\n  - `relative_path`: Original source file (e.g., `README_original.md`)\n  - `src_lang`: Source language code\n  - `target_langs`: Target language(s) (comma-separated if multiple)\n- `.translations.json`\n  - Stores metadata of past translations, including the source hash and translations for each segment.\n  - Committing this file enables differential translation."
+      },
+      {
+        "hash": "2fb9d9698f51eea10d4addf88890b2b82596e7a183b0f3d58e448e80a030a067",
+        "translation": "## Execution"
+      },
+      {
+        "hash": "bcff442aeaf4f7a746826c17011339ce30e8d82c3f180fea22d8149dcb63b168",
+        "translation": "- Local: `yarn translate` for actual execution, `yarn translate:dry-run` to check differences only\n- CI: `.github/workflows/gemini-translation.yml` automatically runs on push to `main` and proposes translation results as a PR."
+      },
+      {
+        "hash": "7f318f0c691efdc7acde15c9db2b5da0a4450b838e5d1c06477193d04005c606",
+        "translation": "## Process Flow"
+      },
+      {
+        "hash": "5045dbc6b4f36c8a9090bdfef530ddca2395de5bd6301e15442b79c24486e30f",
+        "translation": "1. Reads the CSV to enumerate target files and language pairs.\n2. Refers to `.translations.json` to check for existing translations and compare source hashes.\n3. Determines translation targets and sends only necessary segments to the Gemini CLI.\n4. Outputs generated translations to files with `_lang` suffixes and updates metadata."
+      },
+      {
+        "hash": "4eadc218e492985b0a44af987ea2b6f827fb27f493af932903b9db0712544bde",
+        "translation": "## Handling First-Time and Differential Translations"
+      },
+      {
+        "hash": "fb0c6d40441461106b06ba0f95d51228869513ee7be693b881bff4f51fc3cec5",
+        "translation": "- **First-time translation**: If the corresponding key does not exist in `.translations.json`, the entire file is translated at once.\n  - After translating the entire text, it is divided into the same paragraph structure as the original, and segment information is saved for future use.\n  - If the number of paragraphs does not match, it automatically falls back to segment-by-segment translation.\n- **Differential translation**: If the hash of a translated segment matches, the translation is reused, and only paragraphs with changes are retranslated individually.\n  - Progress logs are output each time a segment is translated."
+      },
+      {
+        "hash": "e2a4633a6c4e917e9069fe52bcc7c64fd63eb906a4b184f35f957d6be8c77751",
+        "translation": "## Log Output Example"
+      },
+      {
+        "hash": "c3b7b204959f9da0973ecb6987cdd3378d35925624ec81ad7adb2f9151d8e10c",
+        "translation": "[translate] Translated entire file README_original.md (ja→en).\n[translate] Translated segment 3/44 for docs/github-workflows_original.md (ja→en)."
+      },
+      {
+        "hash": "997c2ce7cc0a43bb3d5e87d75779087adc211fd78e0eff07ef4b644f60577ca9",
+        "translation": "## Notes"
+      },
+      {
+        "hash": "9a3f27d7e41484f4ee32f870bc91077503e9f02dd0db1f77bf23fb1ac5bf9cec",
+        "translation": "- Deleting `.translations.json` or removing only the relevant key will activate first-time translation mode. This is useful for testing behavior.\n- If `.translations.json` is not committed, the entire text will be translated every time, so please be careful.\n- The temporary file path of the Gemini CLI is enclosed in quotation marks, ensuring safe operation even if it contains spaces or special characters."
       }
     ]
   }
