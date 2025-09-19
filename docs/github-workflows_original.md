@@ -2,7 +2,7 @@
 
 ## 概要
 
-このリポジトリには5つのGitHub Actions ワークフローがあり、Gemini AI を使った自動化処理を行います。
+このリポジトリには5つのGitHub Actions ワークフローがあり、Gemini AI を使った自動化処理を行います。併せて、ドキュメント翻訳パイプラインについては `docs/translation-workflow.md` に詳細な説明をまとめています。
 
 ## ワークフロー構成
 
