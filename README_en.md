@@ -16,18 +16,18 @@ claude
 gemini
 ```
 
-### How to log in to Gemini
+### Gemini Login Process
 
 ```bash
 /auth
 ```
 
-1. Select "Login with Google"
-2. Use Gemini API Key
-3. Vertex AI
+1. Choose **Login with Google**
+2. Sign in with your Gemini API key
+3. Or authenticate through Vertex AI
 
 ### Gemini API Key
 
-- `repository name` + `settings/secrets/actions`
-- GEMINI_API_KEY
-- https://aistudio.google.com/apikey
+- `Repository settings` → `Secrets and variables` → `Actions`
+- Set a secret named `GEMINI_API_KEY`
+- Generate the key at <https://aistudio.google.com/apikey>

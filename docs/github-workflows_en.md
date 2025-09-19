@@ -15,11 +15,11 @@ This repository contains five GitHub Actions workflows that automate processes u
 - Pull Request creation, review, comment
 - Issue creation, reopening, comment
 
-#### Operational Branching
+#### Command Routing
 
-- ` @gemini-cli /review` → Executes the Review workflow
-- ` @gemini-cli /triage` → Executes the Triage workflow
-- ` @gemini-cli [other]` → Executes the Invoke workflow
+- `@gemini-cli /review` → Executes the Review workflow
+- `@gemini-cli /triage` → Executes the issue triage workflow
+- `@gemini-cli [other]` → Executes the Invoke workflow
 - PR opened → Automatically executes Review
 - Issue opened → Automatically executes Triage
 
@@ -47,7 +47,7 @@ Detailed review instructions are described in the `prompt` section (lines 104-27
 - Categorization of comments by importance (🔴Critical〜🟢Low)
 - Posting review comments directly to GitHub PRs
 
-#### MCP Server Settings
+#### MCP Server Configuration
 
 Uses the GitHub MCP server to perform PR operations:
 
@@ -62,7 +62,7 @@ Uses the GitHub MCP server to perform PR operations:
 
 - Retrieves the list of labels for the repository
 - Analyzes the issue content and suggests labels
-- Performs triage with a more concise prompt
+- Performs issue triage with a more concise prompt
 
 ### 4. 🔀 Gemini Invoke (`gemini-invoke.yml`)
 
@@ -71,11 +71,11 @@ Uses the GitHub MCP server to perform PR operations:
 #### Usage
 
 - Handles arbitrary requests from users
-- Processes content following ` @gemini-cli` as additional context
+- Processes content following `@gemini-cli` as additional context
 
 ### 5. 🔀 Gemini Scheduled Triage (`gemini-scheduled-triage.yml`)
 
-**Triage with scheduled execution**
+**Scheduled issue triage**
 
 #### Schedule
 
