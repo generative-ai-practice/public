@@ -122,8 +122,8 @@ jobs:
         if: ${{ steps.git_status.outputs.has_changes == 'true' }}
         uses: 'peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e'
         with:
-          token: "${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}"
-          branch: "automation/gemini-translations-${{ steps.timestamp.outputs.value }}"
+          token: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
+          branch: 'automation/gemini-translations-${{ steps.timestamp.outputs.value }}'
           base: 'main'
           title: 'chore: update translations'
           commit-message: 'chore: update translations'
