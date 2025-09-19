@@ -16,6 +16,7 @@ This document summarizes the behavior of the document translation pipeline, prim
 
 - Local: `yarn translate` for actual execution, `yarn translate:dry-run` to check differences only
 - CI: `.github/workflows/gemini-translation.yml` automatically runs on push to `main` and proposes translation results as a PR.
+  - The generated PR is labeled with `skip-translation` by default. When a commit associated with a PR carrying that label hits `main`, the workflow detects it and exits immediately. You can change the label via `vars.GEMINI_TRANSLATION_SKIP_LABEL`.
 
 ## Process Flow
 

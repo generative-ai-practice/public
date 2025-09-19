@@ -42,30 +42,60 @@ jobs:
       - name: 'Checkout repository'
         uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8'
 
+      - name: 'Check skip label on associated PR'
+        id: 'check_skip_label'
+        env:
+          SKIP_LABEL: "${{ vars.GEMINI_TRANSLATION_SKIP_LABEL || 'skip-translation' }}"
+        uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
+        with:
+          script: |
+            const labelName = process.env.SKIP_LABEL;
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+            });
+
+            const match = prs.find((pr) =>
+              pr.labels?.some((label) => label.name === labelName),
+            );
+
+            core.setOutput('skip', match ? 'true' : 'false');
+            core.setOutput('label', labelName);
+            if (match) {
+              core.info(`Found label "${labelName}" on PR #${match.number}; translation will be skipped.`);
+            }
+
       - name: 'Enable Corepack'
+        if: ${{ steps.check_skip_label.outputs.skip != 'true' }}
         run: |
           corepack enable
 
       - name: 'Set up Node.js'
+        if: ${{ steps.check_skip_label.outputs.skip != 'true' }}
         uses: 'actions/setup-node@v4'
         with:
           node-version: '20'
           cache: 'yarn'
 
       - name: 'Install dependencies'
+        if: ${{ steps.check_skip_label.outputs.skip != 'true' }}
         run: |
           yarn install --immutable
 
       - name: 'Install Gemini CLI'
+        if: ${{ steps.check_skip_label.outputs.skip != 'true' }}
         run: |
           npm install -g "@google/gemini-cli@${{ vars.GEMINI_CLI_VERSION }}"
 
       - name: 'Generate timestamp'
         id: 'timestamp'
+        if: ${{ steps.check_skip_label.outputs.skip != 'true' }}
         run: |
           echo "value=$(date -u '+%Y%m%d-%H%M%S')" >> "$GITHUB_OUTPUT"
 
       - name: 'Run Gemini translation orchestrator'
+        if: ${{ steps.check_skip_label.outputs.skip != 'true' }}
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
@@ -80,6 +110,7 @@ jobs:
 
       - name: 'Check for changes'
         id: 'git_status'
+        if: ${{ steps.check_skip_label.outputs.skip != 'true' }}
         run: |
           if [[ -z "$(git status --porcelain)" ]]; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
@@ -103,3 +134,4 @@ jobs:
             docs/
             .translations.json
             translations/targets.csv
+          labels: "${{ vars.GEMINI_TRANSLATION_SKIP_LABEL || 'skip-translation' }}"
