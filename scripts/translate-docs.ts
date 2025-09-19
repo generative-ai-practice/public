@@ -153,6 +153,69 @@ void (async () => {
       }
 
       const segments = splitContentIntoSegments(sourceContent);
+      const isFirstTranslation = !metaEntry || !metaEntry.segments?.length;
+
+      if (isFirstTranslation) {
+        if (dryRun) {
+          console.log(
+            `[translate] (dry-run) Would translate entire file ${relativeSourcePath} (${sourceLang}→${targetLang}).`
+          );
+          continue;
+        }
+
+        await mkdir(path.dirname(targetAbsolutePath), { recursive: true });
+
+        const rawTranslation = await runGeminiTranslation({
+          sourceContent,
+          sourceLang,
+          targetLang,
+          relativeSourcePath,
+          relativeTargetPath: targetRelativePath,
+        });
+
+        const normalizedTranslation = ensureTrailingNewline(rawTranslation);
+        const translatedSegments = splitContentIntoSegments(
+          normalizedTranslation
+        );
+
+        if (translatedSegments.length !== segments.length) {
+          console.warn(
+            `[translate] Unable to align segments for ${relativeSourcePath} (${sourceLang}→${targetLang}); falling back to per-segment translation.`
+          );
+        } else {
+          const segmentResultsFull: SegmentResult[] = segments.map(
+            (segment, index) => ({
+              hash: hashOf(segment.body),
+              translation: sanitizeTranslation(
+                translatedSegments[index]?.body ?? ''
+              ),
+              separator: segment.separator,
+            })
+          );
+
+          await writeFile(targetAbsolutePath, normalizedTranslation, 'utf8');
+
+          metadata[metaKey] = {
+            source: relativeSourcePath,
+            target: targetRelativePath,
+            sourceLang,
+            targetLang,
+            sourceHash,
+            translatedAt: new Date().toISOString(),
+            segments: segmentResultsFull.map(({ hash, translation }) => ({
+              hash,
+              translation,
+            })),
+          };
+          translatedCount += 1;
+          metadataChanged = true;
+          console.log(
+            `[translate] Translated entire file ${relativeSourcePath} (${sourceLang}→${targetLang}).`
+          );
+          continue;
+        }
+      }
+
       const previousSegmentTranslations = buildSegmentTranslationMap(
         metaEntry?.segments ?? []
       );
