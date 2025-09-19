@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository contains five GitHub Actions workflows that automate processes using Gemini AI.  A detailed explanation of the document translation pipeline is also provided in `docs/translation-workflow.md`.
+This repository contains five GitHub Actions workflows that automate processes using Gemini AI. A detailed explanation of the document translation pipeline is also provided in `docs/translation-workflow.md`.
 
 ## Workflow Configuration
 
