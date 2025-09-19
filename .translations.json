@@ -244,8 +244,8 @@
     "target": "docs/translation-workflow_en.md",
     "sourceLang": "ja",
     "targetLang": "en",
-    "sourceHash": "e355444e2c4630eb94c0a0aeb7202425088c38f88444101b579405bee7c4b485",
-    "translatedAt": "2025-09-19T05:09:02.677Z",
+    "sourceHash": "668681ff04f373241dbc6e984719ec03d180d6d3e5ca13a50b78c1560658c915",
+    "translatedAt": "2025-09-19T05:32:22.197Z",
     "segments": [
       {
         "hash": "67582fc62e825c92f8b08ea5603a5b9005eae1c0ab2f8fa32713fe86fe1bf132",
@@ -268,8 +268,8 @@
         "translation": "## Execution"
       },
       {
-        "hash": "bcff442aeaf4f7a746826c17011339ce30e8d82c3f180fea22d8149dcb63b168",
-        "translation": "- Local: `yarn translate` for actual execution, `yarn translate:dry-run` to check differences only\n- CI: `.github/workflows/gemini-translation.yml` automatically runs on push to `main` and proposes translation results as a PR."
+        "hash": "a616d9da58b096e8d3ae49956fd023b21a535ffd5ed715fda592ec9599478407",
+        "translation": "- Local: Run with `yarn translate`, or check differences only with `yarn translate:dry-run`\n- CI: `.github/workflows/gemini-translation.yml` runs automatically on push to `main` and proposes translation results as a PR.\n  - The auto-generated PR is labeled with `skip-translation` by default, and the workflow will skip execution at the beginning if a commit is associated with a PR with the same label. The label name can be changed with `vars.GEMINI_TRANSLATION_SKIP_LABEL`."
       },
       {
         "hash": "7f318f0c691efdc7acde15c9db2b5da0a4450b838e5d1c06477193d04005c606",
