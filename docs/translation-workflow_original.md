@@ -16,6 +16,7 @@
 
 - ローカル: `yarn translate` で本実行、`yarn translate:dry-run` で差分のみ確認
 - CI: `.github/workflows/gemini-translation.yml` が `main` への push で自動実行し、翻訳結果を PR として提案します。
+  - 自動生成される PR には既定で `skip-translation` ラベルが付与され、同ラベル付き PR が紐づくコミットであれば次回のワークフロー実行時に冒頭でスキップされます。ラベル名は `vars.GEMINI_TRANSLATION_SKIP_LABEL` で変更可能です。
 
 ## 処理の流れ
 
