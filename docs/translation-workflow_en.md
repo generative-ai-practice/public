@@ -14,9 +14,9 @@ This document summarizes the behavior of the document translation pipeline, prim
 
 ## Execution
 
-- Local: `yarn translate` for actual execution, `yarn translate:dry-run` to check differences only
-- CI: `.github/workflows/gemini-translation.yml` automatically runs on push to `main` and proposes translation results as a PR.
-  - The generated PR is labeled with `skip-translation` by default. When a commit associated with a PR carrying that label hits `main`, the workflow detects it and exits immediately. You can change the label via `vars.GEMINI_TRANSLATION_SKIP_LABEL`.
+- Local: Run with `yarn translate`, or check differences only with `yarn translate:dry-run`
+- CI: `.github/workflows/gemini-translation.yml` runs automatically on push to `main` and proposes translation results as a PR.
+  - The auto-generated PR is labeled with `skip-translation` by default, and the workflow will skip execution at the beginning if a commit is associated with a PR with the same label. The label name can be changed with `vars.GEMINI_TRANSLATION_SKIP_LABEL`.
 
 ## Process Flow
 
@@ -35,10 +35,8 @@ This document summarizes the behavior of the document translation pipeline, prim
 
 ## Log Output Example
 
-```
 [translate] Translated entire file README_original.md (ja→en).
 [translate] Translated segment 3/44 for docs/github-workflows_original.md (ja→en).
-```
 
 ## Notes
 
