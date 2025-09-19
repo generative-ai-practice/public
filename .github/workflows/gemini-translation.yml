@@ -44,9 +44,9 @@ jobs:
 
       - name: 'Check skip label on associated PR'
         id: 'check_skip_label'
-        uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
         env:
-          SKIP_LABEL: '${{ vars.GEMINI_TRANSLATION_SKIP_LABEL || 'skip-translation' }}'
+          SKIP_LABEL: "${{ vars.GEMINI_TRANSLATION_SKIP_LABEL || 'skip-translation' }}"
+        uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
         with:
           script: |
             const labelName = process.env.SKIP_LABEL;
