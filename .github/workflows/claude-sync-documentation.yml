@@ -4,12 +4,12 @@ on:
     branches:
       - 'main'
     paths:
-      - "src/**/*.ts"
-      - "scripts/**/*.ts"
-      - "package.json"
-      - "tsconfig.json"
-      - ".github/workflows/**/*.yml"
-      - ".github/workflows/**/*.yaml"
+      - 'src/**/*.ts'
+      - 'scripts/**/*.ts'
+      - 'package.json'
+      - 'tsconfig.json'
+      - '.github/workflows/**/*.yml'
+      - '.github/workflows/**/*.yaml'
   workflow_dispatch: {}
 
 concurrency:

@@ -34,12 +34,14 @@ The main feature is an automated documentation translation system (`scripts/tran
 - Supports multiple target languages with reuse of existing translations
 
 Key configuration:
+
 - Translation targets: `translations/targets.csv` (CSV with relative_path, src_lang, target_langs)
 - Translation metadata: `.translations.json` (tracks hashes and translations)
 - Allowed languages: `TRANSLATION_ALLOWED_LANGUAGES` env var (default: "en,ja")
 - Translation command: `GEMINI_TRANSLATION_CLI` env var (default uses gemini CLI)
 
 The system intelligently handles:
+
 - Full file translation for new documents
 - Segment-level updates for modified content
 - Translation reuse based on content hashes
