@@ -103,10 +103,12 @@ jobs:
           GOOGLE_CLOUD_LOCATION: ${{ vars.GOOGLE_CLOUD_LOCATION }}
           GEMINI_MODEL: ${{ vars.GEMINI_DOC_SYNC_MODEL || 'gemini-1.5-pro' }}
         run: |
-          # Create prompt file
+          # Create structured prompt file
           cat > doc_sync_prompt.txt << 'EOF'
           REPO: ${{ github.repository }}
           COMMIT SHA: ${{ github.sha }}
+
+          You are a documentation specialist for a TypeScript translation project. Analyze the recent changes and provide structured output for documentation updates.
 
           Main branch was updated with changes to TypeScript source code. Please:
 
@@ -133,15 +135,48 @@ jobs:
           - Consider docs/contributing_original.md for development guidelines
           - Translated versions will be handled by the translation workflow
 
-          Create or update files as needed for documentation sync.
+          IMPORTANT: Respond with a JSON structure like this:
+          ```json
+          {
+            "actions": [
+              {
+                "type": "create",
+                "file": "docs/api_original.md",
+                "content": "# API Documentation\n\nThis documents the translation API...",
+                "reason": "New API endpoints added for translation system"
+              },
+              {
+                "type": "update",
+                "file": "CLAUDE.md",
+                "content": "Updated CLAUDE.md content here...",
+                "reason": "New development commands added"
+              }
+            ],
+            "targets_csv_additions": [
+              {
+                "relative_path": "docs/api_original.md",
+                "src_lang": "en",
+                "target_langs": "ja"
+              }
+            ]
+          }
+          ```
           EOF
 
           # Run Gemini with the prompt
-          gemini --model ${GEMINI_MODEL} "$(cat doc_sync_prompt.txt)" > gemini_response.txt
+          gemini --model ${GEMINI_MODEL} "$(cat doc_sync_prompt.txt)" > gemini_response.md
 
-          # Process the response (this is a placeholder - you may need to implement actual file operations based on Gemini's response)
-          echo "Gemini response:"
-          cat gemini_response.txt
+          # Process the response using our TypeScript script
+          echo "Processing Gemini response..."
+          tsx scripts/process-gemini-docs.ts gemini_response.md
+
+          # Show what was processed
+          if [ -f "modified_files.txt" ]; then
+            echo "Modified files:"
+            cat modified_files.txt
+          else
+            echo "No files were modified."
+          fi
 
       - name: 'Check for changes'
         id: 'git_status'
@@ -170,5 +205,7 @@ jobs:
             CLAUDE.md
             README_original.md
             docs/*_original.md
-            gemini_response.txt
+            translations/targets.csv
+            gemini_response.md
+            modified_files.txt
           labels: "${{ vars.GEMINI_DOC_SYNC_SKIP_LABEL || 'skip-gemini-doc-sync' }}"
