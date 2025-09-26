@@ -173,28 +173,21 @@ jobs:
 
           # Run Gemini with error handling
           set +e  # Don't exit on error
-          gemini --model ${GEMINI_MODEL} "$(cat doc_sync_prompt.txt)" > "${LOG_FILE}" 2>&1
-          gemini_exit_code=$?
+          gemini --model "${GEMINI_MODEL}" "$(cat doc_sync_prompt.txt)" 2>&1 | tee "${LOG_FILE}"
+          gemini_exit_code=${PIPESTATUS[0]}
           set -e  # Resume exit on error
 
-          # Check for both exit code and error content
-          error_detected=false
           if [ $gemini_exit_code -ne 0 ]; then
             echo "Gemini CLI failed with exit code $gemini_exit_code"
-            error_detected=true
-          elif grep -q "Error when talking to Gemini API" "${LOG_FILE}"; then
-            echo "Gemini CLI returned success but response contains API error"
-            error_detected=true
+            exit $gemini_exit_code
           fi
 
-          if [ "$error_detected" = "true" ]; then
+          if grep -qE 'Error when talking to Gemini API|Full report available at:' "${LOG_FILE}"; then
+            echo "Gemini CLI returned success but response contains API error"
             echo "Gemini API error detected:"
-            cat "${LOG_FILE}"
+            grep -E 'Error when talking to Gemini API|Full report available at:' "${LOG_FILE}"
             echo "Skipping documentation sync due to API error"
-
-            # Create empty modified_files.txt to skip PR creation
-            touch modified_files.txt
-            exit 0
+            exit 1
           fi
 
           # Process the response using yarn script
@@ -207,14 +200,18 @@ jobs:
           yarn process-gemini-docs "${LOG_FILE}" || echo "Process script failed, continuing..."
           set -e  # Resume exit on error
 
-          # Ensure we have at least the log file in modified_files.txt
           if [ ! -s "modified_files.txt" ]; then
-            echo "${LOG_FILE}" > modified_files.txt
+            echo "No documentation changes detected; removing log artifacts."
+            rm -f "${LOG_FILE}" modified_files.txt
           fi
 
           # Show what was processed
           echo "Modified files:"
-          cat modified_files.txt
+          if [ -f modified_files.txt ]; then
+            cat modified_files.txt
+          else
+            echo "(none)"
+          fi
 
       - name: 'Check for changes'
         id: 'git_status'
