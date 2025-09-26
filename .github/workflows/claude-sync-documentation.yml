@@ -99,7 +99,7 @@ jobs:
             Create or update files and commit changes for a documentation update.
 
           claude_args: |
-            --allowedTools "Read,Write,Edit,Bash(git:*),Bash(yarn:*)"
+            --model claude-sonnet-4-20250514 --allowedTools "Read,Write,Edit,Bash(git:*),Bash(yarn:*)"
 
       - name: 'Check for changes'
         id: 'git_status'
