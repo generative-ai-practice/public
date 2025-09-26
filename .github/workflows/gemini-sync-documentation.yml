@@ -210,15 +210,22 @@ jobs:
 
           # Process the response using yarn script
           echo "Processing Gemini response..."
-          yarn process-gemini-docs "${LOG_FILE}"
+
+          # Ensure modified_files.txt exists even if empty
+          touch modified_files.txt
+
+          set +e  # Don't exit on error
+          yarn process-gemini-docs "${LOG_FILE}" || echo "Process script failed, continuing..."
+          set -e  # Resume exit on error
+
+          # Ensure we have at least the log file in modified_files.txt
+          if [ ! -s "modified_files.txt" ]; then
+            echo "${LOG_FILE}" > modified_files.txt
+          fi
 
           # Show what was processed
-          if [ -f "modified_files.txt" ]; then
-            echo "Modified files:"
-            cat modified_files.txt
-          else
-            echo "No files were modified."
-          fi
+          echo "Modified files:"
+          cat modified_files.txt
 
       - name: 'Check for changes'
         id: 'git_status'
