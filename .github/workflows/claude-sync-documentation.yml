@@ -1,4 +1,4 @@
-name: Sync Documentation
+name: Claude Sync Documentation
 on:
   pull_request:
     types: [opened, synchronize]
