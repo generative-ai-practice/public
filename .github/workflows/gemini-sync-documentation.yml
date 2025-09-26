@@ -177,32 +177,24 @@ jobs:
           gemini_exit_code=$?
           set -e  # Resume exit on error
 
+          # Check for both exit code and error content
+          error_detected=false
           if [ $gemini_exit_code -ne 0 ]; then
             echo "Gemini CLI failed with exit code $gemini_exit_code"
-            echo "Gemini response/error:"
-            cat "${LOG_FILE}"
+            error_detected=true
+          elif grep -q "Error when talking to Gemini API" "${LOG_FILE}"; then
+            echo "Gemini CLI returned success but response contains API error"
+            error_detected=true
+          fi
 
-            # Create a fallback minimal response for testing
-            cat > "${LOG_FILE}" << 'EOF'
-          {
-            "actions": [
-              {
-                "type": "create",
-                "file": "docs/test_original.md",
-                "content": "# Test Documentation\n\nThis is a test file created by the Gemini documentation sync workflow.\n\n## Purpose\n\nThis file was created because Gemini API encountered an error, but we want to test the file processing pipeline.\n",
-                "reason": "Gemini API error - creating test file"
-              }
-            ],
-            "targets_csv_additions": [
-              {
-                "relative_path": "docs/test_original.md",
-                "src_lang": "en",
-                "target_langs": "ja"
-              }
-            ]
-          }
-          EOF
-            echo "Created fallback response for testing"
+          if [ "$error_detected" = "true" ]; then
+            echo "Gemini API error detected:"
+            cat "${LOG_FILE}"
+            echo "Skipping documentation sync due to API error"
+
+            # Create empty modified_files.txt to skip PR creation
+            touch modified_files.txt
+            exit 0
           fi
 
           # Process the response using yarn script
