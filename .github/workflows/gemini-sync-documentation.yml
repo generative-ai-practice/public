@@ -1,0 +1,174 @@
+name: '📚 Gemini Documentation Sync'
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'src/**/*.ts'
+      - 'scripts/**/*.ts'
+      - 'package.json'
+      - 'tsconfig.json'
+      - '.github/workflows/**/*.yml'
+      - '.github/workflows/**/*.yaml'
+  workflow_dispatch: {}
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.ref }}'
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: 'bash'
+
+jobs:
+  doc-sync:
+    runs-on: 'ubuntu-latest'
+    permissions:
+      contents: 'write'
+      pull-requests: 'write'
+      id-token: 'write'
+    steps:
+      - name: 'Mint identity token'
+        id: 'mint_identity_token'
+        if: ${{ vars.APP_ID }}
+        uses: 'actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b'
+        with:
+          app-id: '${{ vars.APP_ID }}'
+          private-key: '${{ secrets.APP_PRIVATE_KEY }}'
+          permission-contents: 'write'
+          permission-pull-requests: 'write'
+
+      - name: 'Checkout repository'
+        uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8'
+
+      - name: 'Check skip label on associated PR'
+        id: 'check_skip_label'
+        env:
+          SKIP_LABEL: "${{ vars.GEMINI_DOC_SYNC_SKIP_LABEL || 'skip-gemini-doc-sync' }}"
+        uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
+        with:
+          script: |
+            const labelName = process.env.SKIP_LABEL;
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+            });
+
+            const match = prs.find((pr) =>
+              pr.labels?.some((label) => label.name === labelName),
+            );
+
+            core.setOutput('skip', match ? 'true' : 'false');
+            core.setOutput('label', labelName);
+            if (match) {
+              core.info(`Found label "${labelName}" on PR #${match.number}; documentation sync will be skipped.`);
+            }
+
+      - name: 'Enable Corepack'
+        if: ${{ steps.check_skip_label.outputs.skip != 'true' }}
+        run: |
+          corepack enable
+
+      - name: 'Set up Node.js'
+        if: ${{ steps.check_skip_label.outputs.skip != 'true' }}
+        uses: 'actions/setup-node@v4'
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: 'Install dependencies'
+        if: ${{ steps.check_skip_label.outputs.skip != 'true' }}
+        run: |
+          yarn install --immutable
+
+      - name: 'Install Gemini CLI'
+        if: ${{ steps.check_skip_label.outputs.skip != 'true' }}
+        run: |
+          npm install -g "@google/gemini-cli@${{ vars.GEMINI_CLI_VERSION }}"
+
+      - name: 'Generate timestamp'
+        id: 'timestamp'
+        if: ${{ steps.check_skip_label.outputs.skip != 'true' }}
+        run: |
+          echo "value=$(date -u '+%Y%m%d-%H%M%S')" >> "$GITHUB_OUTPUT"
+
+      - name: 'Run Gemini documentation sync'
+        if: ${{ steps.check_skip_label.outputs.skip != 'true' }}
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_LOCATION: ${{ vars.GOOGLE_CLOUD_LOCATION }}
+          GEMINI_MODEL: ${{ vars.GEMINI_DOC_SYNC_MODEL || 'gemini-1.5-pro' }}
+        run: |
+          # Create prompt file
+          cat > doc_sync_prompt.txt << 'EOF'
+          REPO: ${{ github.repository }}
+          COMMIT SHA: ${{ github.sha }}
+
+          Main branch was updated with changes to TypeScript source code. Please:
+
+          1. Review the changes in src/, scripts/, and .github/workflows/ directories
+          2. Update CLAUDE.md if development commands or architecture changed
+          3. Update README_original.md if needed
+          4. Check if translation system changes require updates to docs/*_original.md files
+          5. Ensure any new environment variables are documented
+          6. Update package.json scripts documentation if new commands were added
+          7. Create new documentation files if needed (e.g., docs/api_original.md, docs/setup_original.md)
+
+          Focus on:
+          - Translation workflow documentation (original files only)
+          - Development setup instructions
+          - GitHub Actions workflow changes
+          - API changes in the translation system
+          - Configuration options and environment variables
+          - New features that need documentation
+
+          Guidelines:
+          - Only update or create original (*_original) documentation files
+          - Suggest creating new docs files for major new features
+          - Consider docs/troubleshooting_original.md for common issues
+          - Consider docs/contributing_original.md for development guidelines
+          - Translated versions will be handled by the translation workflow
+
+          Create or update files as needed for documentation sync.
+          EOF
+
+          # Run Gemini with the prompt
+          gemini --model ${GEMINI_MODEL} "$(cat doc_sync_prompt.txt)" > gemini_response.txt
+
+          # Process the response (this is a placeholder - you may need to implement actual file operations based on Gemini's response)
+          echo "Gemini response:"
+          cat gemini_response.txt
+
+      - name: 'Check for changes'
+        id: 'git_status'
+        if: ${{ steps.check_skip_label.outputs.skip != 'true' }}
+        run: |
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 'Create documentation sync pull request'
+        if: ${{ steps.git_status.outputs.has_changes == 'true' }}
+        uses: 'peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e'
+        with:
+          token: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
+          branch: 'automation/gemini-doc-sync-${{ steps.timestamp.outputs.value }}'
+          base: 'main'
+          title: 'docs: sync documentation with code changes (Gemini)'
+          commit-message: 'docs: sync documentation with code changes (Gemini)'
+          body: |
+            Automated Gemini documentation sync triggered by changes in main.
+
+            Updates original documentation files to reflect code changes.
+          add-paths: |
+            CLAUDE.md
+            README_original.md
+            docs/*_original.md
+            gemini_response.txt
+          labels: "${{ vars.GEMINI_DOC_SYNC_SKIP_LABEL || 'skip-gemini-doc-sync' }}"
