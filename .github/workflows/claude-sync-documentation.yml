@@ -67,4 +67,4 @@ jobs:
             Commit any documentation updates to this PR branch.
 
           claude_args: |
-            --model claude-sonnet-4-20250514 --allowedTools "Read,Write,Edit,Bash(git:*),Bash(yarn:*)"
+            --model claude-sonnet-4-20250514 --allowedTools "Read,Write,Edit,Bash(git:*),Bash(yarn:*),Bash(gh pr:*),Bash(gh issue:*),Bash(diff:*),Bash(cat:*),Bash(ls:*)"
