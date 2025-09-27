@@ -186,6 +186,16 @@ jobs:
             echo "Gemini CLI returned success but response contains API error"
             echo "Gemini API error detected:"
             grep -E 'Error when talking to Gemini API|Full report available at:' "${LOG_FILE}"
+
+            error_report=$(grep -oE '/tmp/gemini-client-error[^ ]+' "${LOG_FILE}" | head -n 1)
+            if [ -n "$error_report" ] && [ -f "$error_report" ]; then
+              echo '--- Gemini error report ---'
+              cat "$error_report" || echo "Failed to read $error_report"
+              echo '--- End Gemini error report ---'
+            else
+              echo "Gemini error report file not found or inaccessible"
+            fi
+
             echo "Skipping documentation sync due to API error"
             exit 1
           fi
