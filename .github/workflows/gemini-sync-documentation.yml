@@ -131,6 +131,8 @@ jobs:
           - Consider docs/troubleshooting_original.md for common issues
           - Consider docs/contributing_original.md for development guidelines
           - Translated versions will be handled by the translation workflow
+          - Do NOT edit files directly or describe tool usage; just propose changes in the JSON structure
+          - If no documentation updates are required, return an empty actions array with an explanation in the reason field
 
           IMPORTANT: Respond with a JSON structure like this:
           ```json
