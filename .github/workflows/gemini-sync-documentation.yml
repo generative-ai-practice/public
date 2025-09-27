@@ -98,7 +98,7 @@ jobs:
         if: ${{ steps.check_skip_label.outputs.skip != 'true' }}
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL: ${{ vars.GEMINI_DOC_SYNC_MODEL || 'gemini-1.5-pro' }}
+          GEMINI_MODEL: ${{ vars.GEMINI_DOC_SYNC_MODEL || 'gemini-2.0-flash' }}
         run: |
           # Create structured prompt file
           cat > doc_sync_prompt.txt << 'EOF'
