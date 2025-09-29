@@ -2,7 +2,7 @@
 
 ## 概要
 
-このリポジトリには5つのGitHub Actions ワークフローがあり、Gemini AI を使った自動化処理を行います。併せて、ドキュメント翻訳パイプラインについては `docs/translation-workflow.md` に詳細な説明をまとめています。
+このリポジトリには5つのGitHub Actions ワークフローがあり、Gemini AI を使った自動化処理を行います。併せて、ドキュメント翻訳パイプラインについては `docs/translation-workflow.md` に詳細な説明をまとめています。さらに、エージェント向けドキュメント（`CLAUDE.md` と `AGENTS.md`）の同期をCIで検証するステップも導入されています。
 
 ## ワークフロー構成
 
@@ -81,6 +81,22 @@ GitHub MCP サーバーを使用してPR操作を実行：
 
 - 設定された時間に自動実行
 - 未対応の Issue を定期的にトリアージ
+
+### 6. ✅ Agent Guide Sync Check（`ci.yml` 内ステップ）
+
+**CLAUDE.md と AGENTS.md の同期検証**
+
+#### 役割
+
+- `yarn sync:agents` を実行してローカルでの同期漏れを検出
+- `git diff --exit-code CLAUDE.md AGENTS.md` で両ファイルの差分を確認し、同期されていなければジョブを失敗させる
+- 失敗時には「`yarn sync:agents` を実行して同期してほしい」という明示的なエラーメッセージを出力
+
+#### 背景
+
+- `CLAUDE.md` を正とし、ローカルで `yarn sync:agents` を実行することで `AGENTS.md` に内容をコピーする運用
+- どちらか一方だけを編集したままコミット・PRすると、CI で差分が検出されるため早期に気付ける
+- 開発者は `CLAUDE.md` を更新した後に `yarn sync:agents` を忘れず実行し、両ファイルを同一コミットで更新する
 
 ## 認証と設定
 

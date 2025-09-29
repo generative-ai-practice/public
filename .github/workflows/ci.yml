@@ -41,3 +41,19 @@ jobs:
 
       - name: Check Prettier formatting
         run: yarn format:check
+
+      - name: Ensure agent guides are synchronized
+        run: |
+          yarn sync:agents
+          if ! git diff --exit-code CLAUDE.md AGENTS.md; then
+            echo "❌ CLAUDE.md and AGENTS.md are not synchronized."
+            echo "Run 'yarn sync:agents' and commit the changes."
+            git diff CLAUDE.md AGENTS.md
+            exit 1
+          fi
+          if ! git diff --exit-code; then
+            echo "❌ Unexpected changes detected after running yarn sync:agents."
+            git status --short
+            exit 1
+          fi
+          echo "✅ Agent guides are synchronized"
