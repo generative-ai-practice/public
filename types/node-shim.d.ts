@@ -19,6 +19,8 @@ type BufferEncoding =
   | 'binary'
   | 'hex';
 
+type BinaryLike = string | Buffer;
+
 declare const process: {
   cwd(): string;
   exit(code?: number): never;
@@ -81,9 +83,9 @@ declare module 'node:os' {
 
 declare module 'node:crypto' {
   interface Hash {
-    update(data: string | ArrayBufferView): Hash;
+    update(data: BinaryLike): Hash;
     digest(): Buffer;
-    digest(encoding: 'hex' | 'base64' | 'base64url'): string;
+    digest(encoding: BufferEncoding): string;
   }
 
   export function createHash(algorithm: string): Hash;
