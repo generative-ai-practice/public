@@ -10,7 +10,18 @@ function isErrnoException(error: unknown): error is NodeJS.ErrnoException {
 }
 
 async function syncAgentGuides(): Promise<void> {
-  await access(claudePath);
+  try {
+    await access(claudePath);
+  } catch (error: unknown) {
+    if (isErrnoException(error) && error.code === 'ENOENT') {
+      console.error(`[sync-agent-guides] Source file not found: ${claudePath}`);
+      process.exitCode = process.exitCode ?? 1;
+      return;
+    }
+
+    throw error;
+  }
+
   const content = await readFile(claudePath, 'utf8');
   try {
     const existingContent = await readFile(agentsPath, 'utf8');
@@ -33,12 +44,10 @@ async function syncAgentGuides(): Promise<void> {
 }
 
 syncAgentGuides().catch((error: unknown) => {
-  if (isErrnoException(error) && error.code === 'ENOENT') {
-    console.error(`[sync-agent-guides] Source file not found: ${claudePath}`);
-  } else if (error instanceof Error) {
-    console.error(`[sync-agent-guides] Unexpected error: ${error.message}`);
+  if (error instanceof Error) {
+    console.error(`[sync-agent-guides] Failed to synchronize guides: ${error.message}`);
   } else {
-    console.error('[sync-agent-guides] Unexpected unknown error');
+    console.error('[sync-agent-guides] Failed to synchronize guides due to an unknown error');
   }
-  process.exitCode = 1;
+  process.exitCode = process.exitCode ?? 1;
 });
