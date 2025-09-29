@@ -19,7 +19,7 @@ type BufferEncoding =
   | 'binary'
   | 'hex';
 
-type BinaryLike = string | Buffer;
+type BinaryLike = string | Buffer | ArrayBuffer | ArrayBufferView;
 
 declare const process: {
   cwd(): string;

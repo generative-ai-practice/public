@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "scripts",
+    "outDir": "dist/scripts"
+  },
+  "include": ["scripts/**/*", "types/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "scripts/**/__tests__/**/*",
+    "scripts/**/__mocks__/**/*",
+    "scripts/**/__fixtures__/**/*"
+  ]
+}

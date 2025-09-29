@@ -51,4 +51,9 @@ jobs:
             git diff CLAUDE.md AGENTS.md
             exit 1
           fi
+          if ! git diff --exit-code; then
+            echo "❌ Unexpected changes detected after running yarn sync:agents."
+            git status --short
+            exit 1
+          fi
           echo "✅ Agent guides are synchronized"
