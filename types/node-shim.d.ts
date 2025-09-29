@@ -31,9 +31,16 @@ type BufferEncoding =
 
 declare module 'node:fs/promises' {
   export function access(path: PathLike, mode?: number): Promise<void>;
-  export function readFile(path: PathLike, encoding: BufferEncoding): Promise<string>;
+  export function readFile(
+    path: PathLike,
+    encoding: BufferEncoding
+  ): Promise<string>;
   export function readFile(path: PathLike): Promise<Buffer>;
-  export function writeFile(path: PathLike, data: string | Buffer, encoding?: BufferEncoding): Promise<void>;
+  export function writeFile(
+    path: PathLike,
+    data: string | Buffer,
+    encoding?: BufferEncoding
+  ): Promise<void>;
   export function mkdir(
     path: PathLike,
     options?: { recursive?: boolean; mode?: number }
