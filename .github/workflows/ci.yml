@@ -41,3 +41,9 @@ jobs:
 
       - name: Check Prettier formatting
         run: yarn format:check
+
+      - name: Synchronize agent guides
+        run: yarn sync:agents
+
+      - name: Ensure agent guides are synchronized
+        run: git diff --exit-code CLAUDE.md AGENTS.md
