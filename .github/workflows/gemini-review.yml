@@ -50,7 +50,7 @@ jobs:
           ISSUE_BODY: '${{ github.event.pull_request.body || github.event.issue.body }}'
           PULL_REQUEST_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
           REPOSITORY: '${{ github.repository }}'
-          ADDITIONAL_CONTEXT: ${{ format('Please write all pull request review comments in Japanese.\n{0}', inputs.additional_context) }}
+          ADDITIONAL_CONTEXT: ${{ format('Please write the review summary and all pull request review comments in Japanese.\n{0}', inputs.additional_context) }}
         with:
           gemini_cli_version: '${{ vars.GEMINI_CLI_VERSION }}'
           gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
@@ -157,6 +157,8 @@ jobs:
 
             For each identified issue, formulate a review comment adhering to the following guidelines.
 
+            - **Language Requirement:** You must write all review comments, the review summary, and the general feedback section entirely in Japanese.
+
             #### Review Criteria (in order of priority)
 
             1. **Correctness:** Identify logic errors, unhandled edge cases, race conditions, incorrect API usage, and data validation flaws.
@@ -254,7 +256,7 @@ jobs:
             3. **Submit Final Review:** Call `mcp__github__submit_pending_pull_request_review` with a summary comment. **DO NOT** approve the pull request. **DO NOT** request changes. The summary comment **MUST** use this exact markdown format:
 
                 <SUMMARY>
-                ## 📋 Review Summary
+                ## 📋 Gemini Review Summary
 
                 A brief, high-level assessment of the Pull Request's objective and quality (2-3 sentences).
 
