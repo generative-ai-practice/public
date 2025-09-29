@@ -34,7 +34,13 @@ declare module 'node:path' {
     dirname: (path: string) => string;
     basename: (path: string) => string;
     extname: (path: string) => string;
-    parse: (path: string) => { dir: string; name: string; base: string; ext: string; root: string };
+    parse: (path: string) => {
+      dir: string;
+      name: string;
+      base: string;
+      ext: string;
+      root: string;
+    };
   };
   export default path;
 }
