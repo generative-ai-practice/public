@@ -45,9 +45,13 @@ async function syncAgentGuides(): Promise<void> {
 
 syncAgentGuides().catch((error: unknown) => {
   if (error instanceof Error) {
-    console.error(`[sync-agent-guides] Failed to synchronize guides: ${error.message}`);
+    console.error(
+      `[sync-agent-guides] Failed to synchronize guides: ${error.message}`
+    );
   } else {
-    console.error('[sync-agent-guides] Failed to synchronize guides due to an unknown error');
+    console.error(
+      '[sync-agent-guides] Failed to synchronize guides due to an unknown error'
+    );
   }
   process.exitCode = process.exitCode ?? 1;
 });
