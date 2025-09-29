@@ -46,4 +46,9 @@ jobs:
         run: yarn sync:agents
 
       - name: Ensure agent guides are synchronized
-        run: git diff --exit-code CLAUDE.md AGENTS.md
+        run: |
+          if ! git diff --exit-code CLAUDE.md AGENTS.md; then
+            echo "❌ CLAUDE.md and AGENTS.md are not synchronized. Run 'yarn sync:agents' to fix."
+            exit 1
+          fi
+          echo "✅ Agent guides are synchronized"
