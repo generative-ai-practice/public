@@ -12,6 +12,18 @@ function isErrnoException(error: unknown): error is NodeJS.ErrnoException {
 async function syncAgentGuides(): Promise<void> {
   await access(claudePath);
   const content = await readFile(claudePath, 'utf8');
+  try {
+    const existingContent = await readFile(agentsPath, 'utf8');
+    if (existingContent === content) {
+      console.log('[sync-agent-guides] AGENTS.md is already up to date');
+      return;
+    }
+  } catch (error: unknown) {
+    if (!isErrnoException(error) || error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
+
   await writeFile(agentsPath, content, 'utf8');
   console.log('[sync-agent-guides] Synchronized AGENTS.md with CLAUDE.md');
 }

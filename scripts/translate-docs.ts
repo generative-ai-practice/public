@@ -65,8 +65,8 @@ const metadataPath = resolvePath(
 const allowedLanguages = new Set(
   (process.env.TRANSLATION_ALLOWED_LANGUAGES ?? 'en,ja')
     .split(',')
-    .map((value) => value.trim())
-    .filter((value) => value.length > 0)
+    .map((value: string) => value.trim())
+    .filter((value: string) => value.length > 0)
 );
 const dryRun = process.argv.includes('--dry-run');
 const defaultTranslationCommand = JSON.stringify([
@@ -701,7 +701,7 @@ async function execute(command: string, args: string[]): Promise<void> {
       env: process.env,
     });
     child.on('error', reject);
-    child.on('close', (code) => {
+    child.on('close', (code: number | null) => {
       if (code === 0) {
         resolve();
       } else {
