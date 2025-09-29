@@ -15,7 +15,7 @@ async function syncAgentGuides(): Promise<void> {
   try {
     const existingContent = await readFile(agentsPath, 'utf8');
     if (existingContent === content) {
-      console.log('[sync-agent-guides] AGENTS.md is already up to date');
+      console.log('[sync-agent-guides] AGENTS.md already matches CLAUDE.md; no changes written');
       return;
     }
   } catch (error: unknown) {
@@ -25,7 +25,7 @@ async function syncAgentGuides(): Promise<void> {
   }
 
   await writeFile(agentsPath, content, 'utf8');
-  console.log('[sync-agent-guides] Synchronized AGENTS.md with CLAUDE.md');
+  console.log('[sync-agent-guides] Updated AGENTS.md with the latest CLAUDE.md content');
 }
 
 syncAgentGuides().catch((error: unknown) => {

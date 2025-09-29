@@ -14,12 +14,31 @@ declare interface NodeProcess {
 
 declare const process: NodeProcess;
 
+type Buffer = Uint8Array;
+type PathLike = string;
+type BufferEncoding =
+  | 'ascii'
+  | 'utf8'
+  | 'utf-8'
+  | 'utf16le'
+  | 'ucs2'
+  | 'ucs-2'
+  | 'base64'
+  | 'base64url'
+  | 'latin1'
+  | 'binary'
+  | 'hex';
+
 declare module 'node:fs/promises' {
-  export const access: (...args: any[]) => Promise<any>;
-  export const readFile: (...args: any[]) => Promise<any>;
-  export const writeFile: (...args: any[]) => Promise<any>;
-  export const mkdir: (...args: any[]) => Promise<any>;
-  export const unlink: (...args: any[]) => Promise<any>;
+  export function access(path: PathLike, mode?: number): Promise<void>;
+  export function readFile(path: PathLike, encoding: BufferEncoding): Promise<string>;
+  export function readFile(path: PathLike): Promise<Buffer>;
+  export function writeFile(path: PathLike, data: string | Buffer, encoding?: BufferEncoding): Promise<void>;
+  export function mkdir(
+    path: PathLike,
+    options?: { recursive?: boolean; mode?: number }
+  ): Promise<void>;
+  export function unlink(path: PathLike): Promise<void>;
 }
 
 declare module 'node:fs' {
