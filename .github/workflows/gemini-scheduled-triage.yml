@@ -261,13 +261,35 @@ jobs:
             // Parse the available labels
             const availableLabels = (process.env.AVAILABLE_LABELS || '').split(',')
               .map((label) => label.trim())
+              .filter(Boolean)
               .sort()
 
             // Parse out the triaged issues
-            const triagedIssues = (JSON.parse(process.env.TRIAGED_ISSUES || '{}'))
+            const rawTriagedIssues = process.env.TRIAGED_ISSUES || '[]'
+            let triagedIssues = []
+
+            try {
+              const parsed = JSON.parse(rawTriagedIssues)
+
+              if (Array.isArray(parsed)) {
+                triagedIssues = parsed
+              } else {
+                core.warning(`Expected TRIAGED_ISSUES to be a JSON array but received ${typeof parsed}. Skipping.`)
+              }
+            } catch (error) {
+              core.warning(`Failed to parse TRIAGED_ISSUES payload: ${error}. Skipping label application.`)
+            }
+
+            triagedIssues = triagedIssues
+              .filter((issue) => issue && typeof issue.issue_number === 'number')
               .sort((a, b) => a.issue_number - b.issue_number)
 
             core.debug(`Triaged issues: ${JSON.stringify(triagedIssues)}`);
+
+            if (triagedIssues.length === 0) {
+              core.info('No triaged issues to label after parsing payload.');
+              return;
+            }
 
             // Iterate over each label
             for (const issue of triagedIssues) {
@@ -277,10 +299,6 @@ jobs:
               }
 
               const issueNumber = issue.issue_number;
-              if (!issueNumber) {
-                core.debug(`Skipping issue with no data: ${JSON.stringify(issue)}`);
-                continue;
-              }
 
               // Extract and reject invalid labels - we do this just in case
               // someone was able to prompt inject malicious labels.
