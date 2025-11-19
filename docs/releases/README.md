@@ -27,6 +27,7 @@
    git tag v1.0.0
    git push origin v1.0.0
    ```
+
    - GitHub Actionsが自動実行
    - 前回タグからの全PRをGeminiが統合分析
    - `CHANGELOG.md` / `INTERNAL_LOG.md` を更新

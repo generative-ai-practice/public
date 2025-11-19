@@ -15,24 +15,29 @@ import fs from 'fs';
 import path from 'path';
 
 const CHANGELOG_FILE = path.join(process.cwd(), 'docs/releases/CHANGELOG.md');
-const INTERNAL_LOG_FILE = path.join(process.cwd(), 'docs/releases/INTERNAL_LOG.md');
+const INTERNAL_LOG_FILE = path.join(
+  process.cwd(),
+  'docs/releases/INTERNAL_LOG.md'
+);
 
 function main() {
-    const changelogContent = process.env.CHANGELOG_CONTENT;
-    const internalLogContent = process.env.INTERNAL_LOG_CONTENT;
+  const changelogContent = process.env.CHANGELOG_CONTENT;
+  const internalLogContent = process.env.INTERNAL_LOG_CONTENT;
 
-    if (!changelogContent || !internalLogContent) {
-        console.error('❌ Error: CHANGELOG_CONTENT and INTERNAL_LOG_CONTENT environment variables are required');
-        process.exit(1);
-    }
+  if (!changelogContent || !internalLogContent) {
+    console.error(
+      '❌ Error: CHANGELOG_CONTENT and INTERNAL_LOG_CONTENT environment variables are required'
+    );
+    process.exit(1);
+  }
 
-    // Write CHANGELOG.md
-    fs.writeFileSync(CHANGELOG_FILE, changelogContent);
-    console.log('✅ Generated CHANGELOG.md');
+  // Write CHANGELOG.md
+  fs.writeFileSync(CHANGELOG_FILE, changelogContent);
+  console.log('✅ Generated CHANGELOG.md');
 
-    // Write INTERNAL_LOG.md
-    fs.writeFileSync(INTERNAL_LOG_FILE, internalLogContent);
-    console.log('✅ Generated INTERNAL_LOG.md');
+  // Write INTERNAL_LOG.md
+  fs.writeFileSync(INTERNAL_LOG_FILE, internalLogContent);
+  console.log('✅ Generated INTERNAL_LOG.md');
 }
 
 main();

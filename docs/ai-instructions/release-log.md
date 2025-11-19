@@ -88,6 +88,7 @@ git commit & push
 **トリガー**: `pull_request` の `closed` イベント（`merged == true`）
 
 **ステップ**:
+
 1. PRメタデータ取得（番号、タイトル、本文、マージ日時、作成者、ラベル）
 2. PR差分取得（`gh pr diff`）
 3. Gemini API呼び出し
@@ -101,6 +102,7 @@ git commit & push
 **トリガー**: `push` with `tags` パターン
 
 **ステップ**:
+
 1. 前回のタグとの差分期間を計算
 2. `log.json` から該当期間のエントリーを抽出
 3. Gemini API 呼び出し
@@ -115,6 +117,7 @@ git commit & push
 ### 1. PRマージ時のプロンプト（個別PR分析）
 
 **システムプロンプト:**
+
 ```
 あなたはソフトウェア開発チームのリリースノート作成アシスタントです。
 PRの内容を分析し、以下の2種類の文章を生成してください:
@@ -137,6 +140,7 @@ PRの内容を分析し、以下の2種類の文章を生成してください:
 ```
 
 **ユーザープロンプト:**
+
 ```
 以下のPRを分析してください:
 
@@ -153,6 +157,7 @@ ${PR_DIFF}
 ### 2. タグ作成時のプロンプト（リリース全体の統合）
 
 **システムプロンプト:**
+
 ```
 あなたはソフトウェアのリリースノートを作成する専門家です。
 複数のPRをまとめて、分かりやすいリリースノートを作成してください。
@@ -171,6 +176,7 @@ ${PR_DIFF}
 ```
 
 **ユーザープロンプト:**
+
 ```
 以下は今回のリリースに含まれる全てのPRです。
 これらを分析し、統合されたリリースノートを生成してください。
@@ -193,16 +199,19 @@ ${JSON.stringify(entries, null, 2)}
 ## 実装ステップ
 
 ### Phase 1: 基本構造の構築
+
 - [ ] `docs/releases/` ディレクトリ作成
 - [ ] `log.json` の初期ファイル作成
 - [ ] 既存の `.changes/` 関連ファイルを削除
 
 ### Phase 2: PRマージ時の自動生成
+
 - [ ] `.github/workflows/release-log-on-merge.yml` 作成
 - [ ] Gemini API 統合（`google-github-actions/run-gemini-cli@v0` 使用）
 - [ ] `log.json` への追記ロジック実装（TypeScript スクリプト）
 
 ### Phase 3: タグ作成時の集計
+
 - [ ] `.github/workflows/release-log-on-tag.yml` 作成
 - [ ] Gemini API統合（タグ作成時）
 - [ ] `scripts/generate-changelog-from-log.ts` 実装
@@ -211,6 +220,7 @@ ${JSON.stringify(entries, null, 2)}
   - CHANGELOG.md / INTERNAL_LOG.md 生成
 
 ### Phase 4: テスト・ドキュメント
+
 - [ ] テストPRでの動作確認
 - [ ] README.md に使い方を追記
 - [ ] 既存の `CHANGELOG.md` / `INTERNAL_LOG.md` をバックアップ
