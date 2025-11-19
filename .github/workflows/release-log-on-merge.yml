@@ -5,6 +5,12 @@ on:
     types: [closed]
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR番号（手動実行時）'
+        required: true
+        type: number
 
 permissions:
   contents: write
@@ -12,7 +18,7 @@ permissions:
 
 jobs:
   generate-release-notes:
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -34,12 +40,33 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_BODY="${{ github.event.pull_request.body }}"
-          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
-          PR_MERGED_AT="${{ github.event.pull_request.merged_at }}"
-          PR_LABELS=$(echo '${{ toJSON(github.event.pull_request.labels.*.name) }}' | jq -r 'join(",")')
+          # 手動実行時はinputから、自動実行時はeventから取得
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PR_NUMBER="${{ inputs.pr_number }}"
+
+            # Get PR details using GitHub CLI
+            PR_DATA=$(gh pr view $PR_NUMBER --json number,title,body,author,labels,mergedAt,merged --repo ${{ github.repository }})
+
+            # Check if PR is merged
+            IS_MERGED=$(echo "$PR_DATA" | jq -r '.merged')
+            if [ "$IS_MERGED" != "true" ]; then
+              echo "❌ Error: PR #$PR_NUMBER is not merged yet"
+              exit 1
+            fi
+
+            PR_TITLE=$(echo "$PR_DATA" | jq -r '.title')
+            PR_BODY=$(echo "$PR_DATA" | jq -r '.body // ""')
+            PR_AUTHOR=$(echo "$PR_DATA" | jq -r '.author.login')
+            PR_MERGED_AT=$(echo "$PR_DATA" | jq -r '.mergedAt')
+            PR_LABELS=$(echo "$PR_DATA" | jq -r '.labels | map(.name) | join(",")')
+          else
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+            PR_TITLE="${{ github.event.pull_request.title }}"
+            PR_BODY="${{ github.event.pull_request.body }}"
+            PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+            PR_MERGED_AT="${{ github.event.pull_request.merged_at }}"
+            PR_LABELS=$(echo '${{ toJSON(github.event.pull_request.labels.*.name) }}' | jq -r 'join(",")')
+          fi
 
           # Get PR diff
           PR_DIFF=$(gh pr diff $PR_NUMBER --repo ${{ github.repository }})
@@ -141,5 +168,12 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add docs/releases/log.json
-          git diff --staged --quiet || git commit -m "chore: add PR #${{ steps.pr_info.outputs.pr_number }} to release log [skip ci]"
+
+          # 手動実行時は (manual) を追記
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            git diff --staged --quiet || git commit -m "chore: add PR #${{ steps.pr_info.outputs.pr_number }} to release log (manual) [skip ci]"
+          else
+            git diff --staged --quiet || git commit -m "chore: add PR #${{ steps.pr_info.outputs.pr_number }} to release log [skip ci]"
+          fi
+
           git push
