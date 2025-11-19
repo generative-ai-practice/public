@@ -23,6 +23,7 @@
    - `log.json` に自動追記
 
 2. タグを作成（例: `v1.0.0`）
+
    ```bash
    git tag v1.0.0
    git push origin v1.0.0
