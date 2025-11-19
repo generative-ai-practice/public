@@ -1,0 +1,148 @@
+name: Release Log - Tag Creation
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  generate-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Get tag information
+        id: tag_info
+        run: |
+          CURRENT_TAG=${GITHUB_REF#refs/tags/}
+          echo "current_tag=$CURRENT_TAG" >> $GITHUB_OUTPUT
+
+          # Get previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 $CURRENT_TAG^ 2>/dev/null || echo "")
+          echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+
+          # Get date range
+          if [ -n "$PREVIOUS_TAG" ]; then
+            START_DATE=$(git log -1 --format=%aI $PREVIOUS_TAG)
+            echo "start_date=$START_DATE" >> $GITHUB_OUTPUT
+          else
+            echo "start_date=" >> $GITHUB_OUTPUT
+          fi
+
+          END_DATE=$(git log -1 --format=%aI $CURRENT_TAG)
+          echo "end_date=$END_DATE" >> $GITHUB_OUTPUT
+
+      - name: Extract log entries
+        id: extract_entries
+        run: |
+          START_DATE="${{ steps.tag_info.outputs.start_date }}"
+          END_DATE="${{ steps.tag_info.outputs.end_date }}"
+
+          # Read log.json and filter by date range
+          if [ -n "$START_DATE" ]; then
+            ENTRIES=$(jq --arg start "$START_DATE" --arg end "$END_DATE" \
+              '.entries | map(select(.merged_at >= $start and .merged_at <= $end))' \
+              docs/releases/log.json)
+          else
+            ENTRIES=$(jq '.entries' docs/releases/log.json)
+          fi
+
+          # Save to file for Gemini
+          echo "$ENTRIES" > /tmp/entries.json
+          echo "entries_count=$(echo "$ENTRIES" | jq 'length')" >> $GITHUB_OUTPUT
+
+      - name: Generate unified release notes with Gemini
+        if: steps.extract_entries.outputs.entries_count > 0
+        uses: google-github-actions/run-gemini-cli@v0
+        id: gemini_generate
+        env:
+          TAG_NAME: ${{ steps.tag_info.outputs.current_tag }}
+          PREVIOUS_TAG: ${{ steps.tag_info.outputs.previous_tag }}
+          START_DATE: ${{ steps.tag_info.outputs.start_date }}
+          END_DATE: ${{ steps.tag_info.outputs.end_date }}
+          ENTRIES_FILE: /tmp/entries.json
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gcp_workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          gcp_project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+          gcp_location: ${{ vars.GOOGLE_CLOUD_LOCATION }}
+          gcp_service_account: ${{ vars.SERVICE_ACCOUNT_EMAIL }}
+          use_vertex_ai: ${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}
+          google_api_key: ${{ secrets.GOOGLE_API_KEY }}
+          gemini_model: ${{ vars.GEMINI_MODEL }}
+          settings: |
+            {
+              "maxSessionTurns": 5,
+              "telemetry": {
+                "enabled": false
+              }
+            }
+          prompt: |
+            あなたはソフトウェアのリリースノートを作成する専門家です。
+            複数のPRをまとめて、分かりやすいリリースノートを作成してください。
+
+            重要な点:
+            - 関連する複数のPRは1つの機能としてまとめる
+            - 重複する内容は排除する
+            - ユーザーにとって重要な順に並べる
+            - 公開用と内部用で適切に情報を分離する
+
+            以下は今回のリリースに含まれる全てのPRです。
+            これらを分析し、統合されたリリースノートを生成してください。
+
+            【対象期間】
+            タグ: ${TAG_NAME}
+            前回タグ: ${PREVIOUS_TAG}
+            期間: ${START_DATE} 〜 ${END_DATE}
+
+            【PRリスト】
+            $(cat ${ENTRIES_FILE})
+
+            上記から、以下のJSON形式で出力してください:
+            {
+              "changelog": "CHANGELOG.md の内容（Markdown形式、## ${TAG_NAME} から始める）",
+              "internal_log": "INTERNAL_LOG.md の内容（Markdown形式、## ${TAG_NAME} から始める）"
+            }
+
+            各ファイルの内容は、タグ名のヘッダーから始まる完全なMarkdownセクションとして出力してください。
+            JSON形式で出力し、他の説明文は不要です。
+
+      - name: Parse Gemini response and update files
+        if: steps.extract_entries.outputs.entries_count > 0
+        run: |
+          # Extract JSON from Gemini response
+          RESPONSE='${{ steps.gemini_generate.outputs.response }}'
+
+          # Extract changelog and internal_log
+          CHANGELOG_CONTENT=$(echo "$RESPONSE" | jq -r '.changelog // "## ${{ steps.tag_info.outputs.current_tag }}\n\nNo changes."')
+          INTERNAL_LOG_CONTENT=$(echo "$RESPONSE" | jq -r '.internal_log // "## ${{ steps.tag_info.outputs.current_tag }}\n\nNo changes."')
+
+          # Prepend to existing files
+          echo -e "$CHANGELOG_CONTENT\n\n$(cat docs/releases/CHANGELOG.md)" > docs/releases/CHANGELOG.md
+          echo -e "$INTERNAL_LOG_CONTENT\n\n$(cat docs/releases/INTERNAL_LOG.md)" > docs/releases/INTERNAL_LOG.md
+
+          echo "✅ Updated docs/releases/CHANGELOG.md and docs/releases/INTERNAL_LOG.md"
+
+      - name: Commit and push changes
+        if: steps.extract_entries.outputs.entries_count > 0
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/releases/CHANGELOG.md docs/releases/INTERNAL_LOG.md
+          git diff --staged --quiet || git commit -m "chore: update changelogs for ${{ steps.tag_info.outputs.current_tag }} [skip ci]"
+          git push

@@ -1,0 +1,145 @@
+name: Release Log - PR Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  generate-release-notes:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Get PR information
+        id: pr_info
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_BODY="${{ github.event.pull_request.body }}"
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          PR_MERGED_AT="${{ github.event.pull_request.merged_at }}"
+          PR_LABELS=$(echo '${{ toJSON(github.event.pull_request.labels.*.name) }}' | jq -r 'join(",")')
+
+          # Get PR diff
+          PR_DIFF=$(gh pr diff $PR_NUMBER --repo ${{ github.repository }})
+
+          # Save to environment file
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
+          echo "pr_author=$PR_AUTHOR" >> $GITHUB_OUTPUT
+          echo "pr_merged_at=$PR_MERGED_AT" >> $GITHUB_OUTPUT
+          echo "pr_labels=$PR_LABELS" >> $GITHUB_OUTPUT
+
+          # Save PR body and diff to files
+          echo "$PR_BODY" > /tmp/pr_body.txt
+          echo "$PR_DIFF" > /tmp/pr_diff.txt
+
+      - name: Generate release notes with Gemini
+        uses: google-github-actions/run-gemini-cli@v0
+        id: gemini_generate
+        env:
+          PR_TITLE: ${{ steps.pr_info.outputs.pr_title }}
+          PR_BODY_FILE: /tmp/pr_body.txt
+          PR_DIFF_FILE: /tmp/pr_diff.txt
+          PR_LABELS: ${{ steps.pr_info.outputs.pr_labels }}
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gcp_workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          gcp_project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+          gcp_location: ${{ vars.GOOGLE_CLOUD_LOCATION }}
+          gcp_service_account: ${{ vars.SERVICE_ACCOUNT_EMAIL }}
+          use_vertex_ai: ${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}
+          google_api_key: ${{ secrets.GOOGLE_API_KEY }}
+          gemini_model: ${{ vars.GEMINI_MODEL }}
+          settings: |
+            {
+              "maxSessionTurns": 5,
+              "telemetry": {
+                "enabled": false
+              }
+            }
+          prompt: |
+            あなたはソフトウェア開発チームのリリースノート作成アシスタントです。
+            PRの内容を分析し、以下の2種類の文章を生成してください:
+
+            1. **公開用リリースノート (release_note)**:
+               - エンドユーザー向けに分かりやすく
+               - 技術用語を避け、利点を強調
+               - 1-2文で簡潔に
+
+            2. **内部用技術ログ (internal_log)**:
+               - 開発者向けの詳細情報
+               - 実装方法、使用ライブラリ、技術的な判断理由
+               - 将来のメンテナンスに役立つ情報
+
+            以下のPRを分析してください:
+
+            **タイトル**: ${PR_TITLE}
+            **本文**:
+            $(cat ${PR_BODY_FILE})
+
+            **ラベル**: ${PR_LABELS}
+
+            **差分**:
+            $(cat ${PR_DIFF_FILE})
+
+            上記の情報から、以下のJSON形式で出力してください:
+            {
+              "release_note": "...",
+              "internal_log": "..."
+            }
+
+            JSON形式で出力し、他の説明文は不要です。
+
+      - name: Parse Gemini response
+        id: parse_response
+        run: |
+          # Extract JSON from Gemini response
+          RESPONSE=$(echo '${{ steps.gemini_generate.outputs.response }}' | jq -r '.')
+
+          # Extract release_note and internal_log
+          RELEASE_NOTE=$(echo "$RESPONSE" | jq -r '.release_note // "No release note generated"')
+          INTERNAL_LOG=$(echo "$RESPONSE" | jq -r '.internal_log // "No internal log generated"')
+
+          echo "release_note=$RELEASE_NOTE" >> $GITHUB_OUTPUT
+          echo "internal_log=$INTERNAL_LOG" >> $GITHUB_OUTPUT
+
+      - name: Add entry to log.json
+        run: |
+          yarn tsx scripts/add-pr-to-log.ts \
+            "${{ steps.pr_info.outputs.pr_number }}" \
+            "${{ steps.pr_info.outputs.pr_merged_at }}" \
+            "${{ steps.pr_info.outputs.pr_title }}" \
+            "${{ steps.pr_info.outputs.pr_author }}" \
+            "${{ steps.pr_info.outputs.pr_labels }}" \
+            "${{ steps.parse_response.outputs.release_note }}" \
+            "${{ steps.parse_response.outputs.internal_log }}"
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/releases/log.json
+          git diff --staged --quiet || git commit -m "chore: add PR #${{ steps.pr_info.outputs.pr_number }} to release log [skip ci]"
+          git push
