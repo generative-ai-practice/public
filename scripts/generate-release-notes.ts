@@ -15,10 +15,7 @@ import fs from 'fs';
 import path from 'path';
 
 const CHANGELOG_FILE = path.join(process.cwd(), 'docs/releases/CHANGELOG.md');
-const INTERNAL_LOG_FILE = path.join(
-  process.cwd(),
-  'docs/releases/INTERNAL_LOG.md'
-);
+const INTERNAL_LOG_FILE = path.join(process.cwd(), 'docs/releases/INTERNAL_LOG.md');
 
 function main() {
   const changelogContent = process.env.CHANGELOG_CONTENT;
