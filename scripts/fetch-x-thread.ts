@@ -89,6 +89,7 @@ async function fetchThread(
   const client = new TwitterApi(bearerToken);
 
   console.log(`🔍 ポストを取得中: ${options.tweetId}`);
+  console.log(`[API呼び出し 1/2] メインポストを取得...`);
 
   // 1. メインのポストを取得
   const mainTweetResponse = await client.v2.singleTweet(options.tweetId, {
@@ -133,6 +134,7 @@ async function fetchThread(
   }
 
   console.log(`\n🔍 スレッドを検索中...`);
+  console.log(`[API呼び出し 2/2] スレッドを検索...`);
 
   const query = options.includeReplies
     ? `conversation_id:${conversationId}`
