@@ -32,7 +32,9 @@ async function convertToMarkdown(jsonPath: string): Promise<string> {
   // メタ情報
   lines.push('## メタ情報');
   lines.push('');
-  lines.push(`- **作成者**: @${data.author?.username || 'unknown'} (${data.author?.name || 'unknown'})`);
+  lines.push(
+    `- **作成者**: @${data.author?.username || 'unknown'} (${data.author?.name || 'unknown'})`
+  );
   lines.push(`- **投稿日時**: ${data.mainTweet.created_at || 'unknown'}`);
   lines.push(`- **スレッド件数**: ${data.threadTweets.length + 1} 件`);
   lines.push(`- **メディア件数**: ${data.media?.length || 0} 件`);
@@ -105,7 +107,10 @@ async function convertToMarkdown(jsonPath: string): Promise<string> {
                 lines.push(`> ${media.alt_text}`);
               }
               lines.push('');
-            } else if (media.type === 'video' || media.type === 'animated_gif') {
+            } else if (
+              media.type === 'video' ||
+              media.type === 'animated_gif'
+            ) {
               lines.push(`**ビデオ/GIF**: ${media.media_key}`);
               if (media.preview_image_url) {
                 lines.push(`![プレビュー](${media.preview_image_url})`);

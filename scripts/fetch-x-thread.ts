@@ -14,19 +14,12 @@
 
 import 'dotenv/config';
 import { TwitterApi } from 'twitter-api-v2';
-import type {
-  FetchThreadOptions,
-  XThreadResult,
-  XMedia,
-} from './types/x-api';
+import type { FetchThreadOptions, XThreadResult, XMedia } from './types/x-api';
 
 /**
  * メディアをダウンロードする
  */
-async function downloadMedia(
-  media: XMedia[],
-  tweetId: string
-): Promise<void> {
+async function downloadMedia(media: XMedia[], tweetId: string): Promise<void> {
   const fs = await import('fs/promises');
   const path = await import('path');
 
