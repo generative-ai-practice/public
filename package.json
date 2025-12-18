@@ -23,5 +23,9 @@
     "prettier": "^3.6.2",
     "tsx": "^4.19.2",
     "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "twitter-api-v2": "^1.28.0"
   }
 }
