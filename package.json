@@ -11,8 +11,8 @@
     "translate": "tsx --tsconfig tsconfig.scripts.json scripts/translate-docs.ts",
     "translate:dry-run": "tsx --tsconfig tsconfig.scripts.json scripts/translate-docs.ts --dry-run",
     "process-gemini-docs": "tsx --tsconfig tsconfig.scripts.json scripts/process-gemini-docs.ts",
-    "x:fetch": "tsx --tsconfig tsconfig.scripts.json scripts/fetch-x-thread.ts --save",
-    "x:fetch:full": "tsx --tsconfig tsconfig.scripts.json scripts/fetch-x-thread.ts --download-media --save",
+    "x:fetch": "tsx --tsconfig tsconfig.scripts.json scripts/fetch-x-thread.ts",
+    "x:fetch:full": "tsx --tsconfig tsconfig.scripts.json scripts/fetch-x-thread.ts --download-media",
     "x:md": "tsx --tsconfig tsconfig.scripts.json scripts/convert-thread-to-md.ts"
   },
   "devDependencies": {

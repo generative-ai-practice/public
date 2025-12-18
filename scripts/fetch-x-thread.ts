@@ -265,11 +265,15 @@ async function main(): Promise<void> {
 
   const tweetId = args[0];
   const includeReplies = args.includes('--with-replies');
-  const shouldSave = args.includes('--save');
+  const explicitSave = args.includes('--save');
+  const explicitNoSave = args.includes('--no-save');
   const downloadMedia = args.includes('--download-media');
   const maxResultsIndex = args.indexOf('--max');
   const maxResults =
     maxResultsIndex >= 0 ? parseInt(args[maxResultsIndex + 1], 10) : 100;
+
+  // デフォルトは保存する（--no-save で無効化可能）
+  const shouldSave = explicitNoSave ? false : explicitSave || true;
 
   try {
     const result = await fetchThread({
