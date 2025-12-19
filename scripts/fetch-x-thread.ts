@@ -4,17 +4,24 @@
  * X (Twitter) のスレッド取得スクリプト
  *
  * 使用方法:
- *   yarn fetch:thread <tweet_id>
- *   yarn fetch:thread <tweet_id> --with-replies
+ *   yarn x:fetch <tweet_id>
+ *   yarn x:fetch:full <tweet_id>
  *
  * 例:
- *   yarn fetch:thread 1234567890123456789
- *   yarn fetch:thread 1234567890123456789 --with-replies
+ *   yarn x:fetch 1234567890123456789
+ *   yarn x:fetch:full 1234567890123456789
  */
 
 import 'dotenv/config';
 import { TwitterApi } from 'twitter-api-v2';
 import type { FetchThreadOptions, XThreadResult, XMedia } from './types/x-api';
+
+/**
+ * 定数定義
+ */
+const OUTPUT_BASE_DIR = 'output/x-threads';
+const FILENAME_PREFIX = 'thread_';
+const FILENAME_EXTENSION = '.json';
 
 /**
  * メディアをダウンロードする
@@ -23,7 +30,7 @@ async function downloadMedia(media: XMedia[], tweetId: string): Promise<void> {
   const fs = await import('fs/promises');
   const path = await import('path');
 
-  const outputDir = path.join(process.cwd(), 'output', 'x-threads', tweetId);
+  const outputDir = path.join(process.cwd(), OUTPUT_BASE_DIR, tweetId);
   await fs.mkdir(outputDir, { recursive: true });
 
   console.log(`\n📥 メディアをダウンロード中...`);
@@ -227,10 +234,10 @@ async function saveToFile(
   const fs = await import('fs/promises');
   const path = await import('path');
 
-  const outputDir = path.join(process.cwd(), 'output', 'x-threads');
+  const outputDir = path.join(process.cwd(), OUTPUT_BASE_DIR);
   await fs.mkdir(outputDir, { recursive: true });
 
-  const filename = `thread_${tweetId}_${Date.now()}.json`;
+  const filename = `${FILENAME_PREFIX}${tweetId}_${Date.now()}${FILENAME_EXTENSION}`;
   const filepath = path.join(outputDir, filename);
 
   await fs.writeFile(filepath, JSON.stringify(result, null, 2), 'utf-8');
@@ -247,18 +254,19 @@ async function main(): Promise<void> {
   if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
     console.log(`
 使用方法:
-  yarn fetch:thread <tweet_id> [options]
+  yarn x:fetch <tweet_id> [options]
+  yarn x:fetch:full <tweet_id> [options]
 
 オプション:
   --with-replies    他ユーザーからの返信も含める
   --max <number>    取得する最大件数 (デフォルト: 100)
-  --save            結果をJSONファイルに保存
-  --download-media  画像をダウンロード
+  --no-save         結果をJSONファイルに保存しない
+  --download-media  画像をダウンロード (x:fetch:full は自動的に有効)
 
 例:
-  yarn fetch:thread 1234567890123456789
-  yarn fetch:thread 1234567890123456789 --with-replies --save
-  yarn fetch:thread 1234567890123456789 --download-media --save
+  yarn x:fetch 1234567890123456789
+  yarn x:fetch 1234567890123456789 --with-replies
+  yarn x:fetch:full 1234567890123456789
     `);
     process.exit(0);
   }
