@@ -179,7 +179,16 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  const jsonPath = args[0];
+  // パストラバーサル攻撃対策: パスを正規化して検証
+  const path = await import('path');
+  const jsonPath = path.resolve(args[0]);
+  const cwd = process.cwd();
+
+  if (!jsonPath.startsWith(cwd)) {
+    console.error('❌ エラー: 無効なファイルパスです');
+    console.error(`   カレントディレクトリ外のファイルにはアクセスできません`);
+    process.exit(1);
+  }
 
   try {
     console.log(`📄 JSONファイルを読み込み中: ${jsonPath}`);

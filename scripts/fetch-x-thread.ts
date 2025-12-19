@@ -49,7 +49,7 @@ async function downloadMedia(media: XMedia[], tweetId: string): Promise<void> {
       const filename = `${item.media_key}.${extension}`;
       const filepath = path.join(outputDir, filename);
 
-      await fs.writeFile(filepath, Buffer.from(buffer));
+      await fs.writeFile(filepath, new Uint8Array(buffer));
 
       console.log(
         `   [${index + 1}/${media.length}] ✅ ${filename} (${(buffer.byteLength / 1024).toFixed(2)} KB)`
@@ -264,6 +264,14 @@ async function main(): Promise<void> {
   }
 
   const tweetId = args[0];
+
+  // Tweet ID のバリデーション（パストラバーサル攻撃対策）
+  if (!/^[0-9]+$/.test(tweetId)) {
+    console.error('❌ エラー: 無効なTweet IDです');
+    console.error('   Tweet IDは数字のみで構成される必要があります');
+    process.exit(1);
+  }
+
   const includeReplies = args.includes('--with-replies');
   const explicitSave = args.includes('--save');
   const explicitNoSave = args.includes('--no-save');
