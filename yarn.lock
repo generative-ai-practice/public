@@ -722,6 +722,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dotenv@npm:^17.2.3":
+  version: 17.2.3
+  resolution: "dotenv@npm:17.2.3"
+  checksum: 10c0/c884403209f713214a1b64d4d1defa4934c2aa5b0002f5a670ae298a51e3c3ad3ba79dfee2f8df49f01ae74290fcd9acdb1ab1d09c7bfb42b539036108bb2ba0
+  languageName: node
+  linkType: hard
+
 "eastasianwidth@npm:^0.2.0":
   version: 0.2.0
   resolution: "eastasianwidth@npm:0.2.0"
@@ -1834,11 +1841,13 @@ __metadata:
     "@types/node": "npm:^24.10.1"
     "@typescript-eslint/eslint-plugin": "npm:^8.44.0"
     "@typescript-eslint/parser": "npm:^8.44.0"
+    dotenv: "npm:^17.2.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^10.1.8"
     eslint-plugin-prettier: "npm:^5.5.4"
     prettier: "npm:^3.6.2"
     tsx: "npm:^4.19.2"
+    twitter-api-v2: "npm:^1.28.0"
     typescript: "npm:^5.9.2"
   languageName: unknown
   linkType: soft
@@ -2108,6 +2117,13 @@ __metadata:
   bin:
     tsx: dist/cli.mjs
   checksum: 10c0/70f9bf746be69281312a369c712902dbf9bcbdd9db9184a4859eb4859c36ef0c5a6d79b935c1ec429158ee73fd6584089400ae8790345dae34c5b0222bdb94f3
+  languageName: node
+  linkType: hard
+
+"twitter-api-v2@npm:^1.28.0":
+  version: 1.28.0
+  resolution: "twitter-api-v2@npm:1.28.0"
+  checksum: 10c0/b30f34dcab5fd2888422ff3aa6575169d09e8bbd559683d4aefced2afde13efd8485072423a64ca69481899ccb19bebeafd7f9f1e37f3cf7ebe2d630b0d203a6
   languageName: node
   linkType: hard
 
