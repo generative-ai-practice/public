@@ -1,12 +1,12 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import "dotenv/config";
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import 'dotenv/config';
 
 const apiKey = process.env.GEMINI_API_KEY!;
 const genAI = new GoogleGenerativeAI(apiKey);
 
 // --- Agent 1: 企画担当 (攻めの姿勢) ---
 const plannerAgent = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
+  model: 'gemini-2.5-flash',
   systemInstruction: `
     あなたは大胆なイベントプランナーです。
     ユーザーからテーマを渡されたら、誰も思いつかないようなユニークで派手な企画案を3つ考えてください。
@@ -16,7 +16,7 @@ const plannerAgent = genAI.getGenerativeModel({
 
 // --- Agent 2: レビュー担当 (守りの姿勢) ---
 const reviewerAgent = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
+  model: 'gemini-2.5-flash',
   systemInstruction: `
     あなたは現実的なプロジェクトマネージャーです。
     プランナーから提出された企画案を読み、以下の処理を行ってください。
@@ -27,32 +27,32 @@ const reviewerAgent = genAI.getGenerativeModel({
 });
 
 async function main() {
-  const theme = "AIを使った新しい夏祭り";
+  const theme = 'AIを使った新しい夏祭り';
 
   console.log(`\n🎯 テーマ: ${theme}\n`);
-  console.log("-----------------------------------");
+  console.log('-----------------------------------');
 
   // Step 1: 企画担当エージェントに企画を考えてもらう
-  console.log("\n💡 企画担当エージェントが考案中...\n");
+  console.log('\n💡 企画担当エージェントが考案中...\n');
   const plannerChat = plannerAgent.startChat();
   const plannerResult = await plannerChat.sendMessage(theme);
   const proposals = plannerResult.response.text();
 
-  console.log("【企画案】\n");
+  console.log('【企画案】\n');
   console.log(proposals);
-  console.log("\n-----------------------------------");
+  console.log('\n-----------------------------------');
 
   // Step 2: レビュー担当エージェントに企画案を評価してもらう
-  console.log("\n🔍 レビュー担当エージェントが評価中...\n");
+  console.log('\n🔍 レビュー担当エージェントが評価中...\n');
   const reviewerChat = reviewerAgent.startChat();
   const reviewerResult = await reviewerChat.sendMessage(
     `以下の企画案を評価してください:\n\n${proposals}`
   );
   const finalPlan = reviewerResult.response.text();
 
-  console.log("【最終プロジェクト概要】\n");
+  console.log('【最終プロジェクト概要】\n');
   console.log(finalPlan);
-  console.log("\n-----------------------------------\n");
+  console.log('\n-----------------------------------\n');
 }
 
 main();

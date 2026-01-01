@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import "dotenv/config";
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import 'dotenv/config';
 
 const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) throw new Error("APIキーがありません");
+if (!apiKey) throw new Error('APIキーがありません');
 
 const genAI = new GoogleGenerativeAI(apiKey);
 
@@ -19,15 +19,15 @@ const tools = [
   {
     functionDeclarations: [
       {
-        name: "add_numbers",
-        description: "2つの数値を足し算します。",
+        name: 'add_numbers',
+        description: '2つの数値を足し算します。',
         parameters: {
-          type: "OBJECT",
+          type: 'OBJECT',
           properties: {
-            a: { type: "NUMBER", description: "最初の数字" },
-            b: { type: "NUMBER", description: "次の数字" },
+            a: { type: 'NUMBER', description: '最初の数字' },
+            b: { type: 'NUMBER', description: '次の数字' },
           },
-          required: ["a", "b"],
+          required: ['a', 'b'],
         },
       },
     ],
@@ -38,14 +38,14 @@ async function main() {
   // --- 3. エージェントの初期化 ---
   // tools を渡すことで、ただのLLMから「エージェント」になります
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: 'gemini-2.5-flash',
     tools: tools,
   });
 
   const chat = model.startChat();
 
   // ユーザーの指示
-  const userPrompt = "5000兆 + 2500兆 はいくつ？";
+  const userPrompt = '5000兆 + 2500兆 はいくつ？';
   console.log(`👤 ユーザー: ${userPrompt}`);
 
   // --- 4. 思考と行動のループ ---
@@ -58,7 +58,7 @@ async function main() {
   if (call) {
     const { name, args } = call;
 
-    if (name === "add_numbers") {
+    if (name === 'add_numbers') {
       // AIの指示通りに関数を実行
       const functionResult = addNumbers(args.a as number, args.b as number);
 
@@ -66,7 +66,7 @@ async function main() {
       const result2 = await chat.sendMessage([
         {
           functionResponse: {
-            name: "add_numbers",
+            name: 'add_numbers',
             response: { result: functionResult },
           },
         },
