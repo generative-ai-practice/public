@@ -15,6 +15,7 @@
 import 'dotenv/config';
 import { TwitterApi } from 'twitter-api-v2';
 import type { FetchThreadOptions, XThreadResult, XMedia } from './types/x-api';
+import { convertToMarkdown, saveMarkdown } from './convert-thread-to-md';
 
 /**
  * 定数定義
@@ -230,7 +231,7 @@ function displayResult(result: XThreadResult): void {
 async function saveToFile(
   result: XThreadResult,
   tweetId: string
-): Promise<void> {
+): Promise<string> {
   const fs = await import('fs/promises');
   const path = await import('path');
 
@@ -243,6 +244,8 @@ async function saveToFile(
   await fs.writeFile(filepath, JSON.stringify(result, null, 2), 'utf-8');
 
   console.log(`\n💾 保存完了: ${filepath}`);
+
+  return filepath;
 }
 
 /**
@@ -262,6 +265,7 @@ async function main(): Promise<void> {
   --max <number>    取得する最大件数 (デフォルト: 100)
   --no-save         結果をJSONファイルに保存しない
   --download-media  画像をダウンロード (x:fetch:full は自動的に有効)
+  --md              Markdown形式に変換する
 
 例:
   yarn x:fetch 1234567890123456789
@@ -271,10 +275,11 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  const tweetId = args[0];
+  // オプションではない最初の引数をTweet IDとして取得
+  const tweetId = args.find((arg: string) => !arg.startsWith('--'));
 
   // Tweet ID のバリデーション（パストラバーサル攻撃対策）
-  if (!/^[0-9]+$/.test(tweetId)) {
+  if (!tweetId || !/^[0-9]+$/.test(tweetId)) {
     console.error('❌ エラー: 無効なTweet IDです');
     console.error('   Tweet IDは数字のみで構成される必要があります');
     process.exit(1);
@@ -284,6 +289,7 @@ async function main(): Promise<void> {
   const explicitSave = args.includes('--save');
   const explicitNoSave = args.includes('--no-save');
   const downloadMedia = args.includes('--download-media');
+  const generateMd = args.includes('--md');
   const maxResultsIndex = args.indexOf('--max');
   const maxResults =
     maxResultsIndex >= 0 ? parseInt(args[maxResultsIndex + 1], 10) : 100;
@@ -302,7 +308,14 @@ async function main(): Promise<void> {
     displayResult(result);
 
     if (shouldSave) {
-      await saveToFile(result, tweetId);
+      const jsonPath = await saveToFile(result, tweetId);
+
+      if (generateMd) {
+        console.log(`\n📝 Markdownに変換中...`);
+        const markdownContent = await convertToMarkdown(jsonPath);
+        const mdPath = await saveMarkdown(markdownContent, jsonPath);
+        console.log(`✅ Markdown保存完了: ${mdPath}`);
+      }
     }
   } catch (error) {
     console.error('\n❌ エラーが発生しました:');
