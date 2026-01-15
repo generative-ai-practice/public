@@ -15,7 +15,7 @@ import type { XThreadResult } from './types/x-api';
 /**
  * JSONファイルをMarkdownに変換する
  */
-async function convertToMarkdown(jsonPath: string): Promise<string> {
+export async function convertToMarkdown(jsonPath: string): Promise<string> {
   const fs = await import('fs/promises');
   const path = await import('path');
 
@@ -145,7 +145,7 @@ async function convertToMarkdown(jsonPath: string): Promise<string> {
 /**
  * Markdownファイルを保存する
  */
-async function saveMarkdown(
+export async function saveMarkdown(
   markdownContent: string,
   jsonPath: string
 ): Promise<string> {
@@ -211,4 +211,10 @@ async function main(): Promise<void> {
   }
 }
 
-main();
+// 直接実行された場合のみ main() を呼び出す
+const isDirectRun =
+  process.argv[1]?.includes('convert-thread-to-md') ||
+  process.argv[1]?.endsWith('x:md');
+if (isDirectRun) {
+  main();
+}
