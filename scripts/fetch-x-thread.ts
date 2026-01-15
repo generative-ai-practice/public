@@ -14,7 +14,12 @@
 
 import 'dotenv/config';
 import { TwitterApi } from 'twitter-api-v2';
-import type { FetchThreadOptions, XThreadResult, XMedia } from './types/x-api';
+import type {
+  FetchThreadOptions,
+  XThreadResult,
+  XMedia,
+  XTweet,
+} from './types/x-api';
 import { convertToMarkdown, saveMarkdown } from './convert-thread-to-md';
 
 /**
@@ -188,11 +193,15 @@ async function fetchThread(
     mainTweet,
     threadTweets: threadTweets
       .filter((tweet) => tweet.id !== mainTweet.id)
-      .sort(
-        (a, b) =>
+      .sort((a: XTweet, b: XTweet) => {
+        // まず時刻でソート
+        const timeDiff =
           new Date(a.created_at || 0).getTime() -
-          new Date(b.created_at || 0).getTime()
-      ),
+          new Date(b.created_at || 0).getTime();
+        if (timeDiff !== 0) return timeDiff;
+        // 同じ時刻の場合はIDでソート（IDは時系列順）
+        return a.id.localeCompare(b.id);
+      }),
     author,
     media: allMedia,
   };
